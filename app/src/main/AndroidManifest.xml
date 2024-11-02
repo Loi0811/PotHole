@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
 
     <application
         android:allowBackup="true"
@@ -12,6 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PotHole"
         tools:targetApi="31">
+        <activity
+            android:name=".Map"
+            android:exported="false" />
         <activity
             android:name=".Home"
             android:exported="false" />
@@ -39,6 +48,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCiLTPttfZ00T3t8HzC14BSv8djzormIMI"/>
     </application>
 
 </manifest>

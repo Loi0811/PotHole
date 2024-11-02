@@ -3,5 +3,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <solid android:color="#f4f4f4"/> <!-- Set your preferred color here -->
     <stroke android:width="3dp" android:color="@color/gray"/>
-    <corners android:radius="35dp" /> <!-- Rounded corners -->
+    <corners android:radius="30dp" /> <!-- Rounded corners -->
 </shape>

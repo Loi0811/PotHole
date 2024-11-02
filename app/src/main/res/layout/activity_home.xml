@@ -121,25 +121,10 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
-                    <RelativeLayout
+                    <com.github.mikephil.charting.charts.PieChart
                         android:id="@+id/dount_chart"
                         android:layout_width="225dp"
-                        android:layout_height="225dp">
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/donut_chart"
-                            android:padding="5dp"/>
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total \n 100"
-                            android:layout_centerHorizontal="true"
-                            android:layout_centerVertical="true"
-                            android:textStyle="bold"
-                            android:textSize="20dp"
-                            android:textColor="@color/dark_gray"/>
-                    </RelativeLayout>
+                        android:layout_height="225dp"/>
                     <LinearLayout
                         android:layout_toRightOf="@id/dount_chart"
                         android:layout_width="match_parent"
@@ -213,6 +198,7 @@
                 android:elevation="15dp"
                 android:layout_centerHorizontal="true">
                 <TextView
+                    android:id="@+id/daily"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Weekly Pot Hole"
@@ -254,19 +240,51 @@
                         android:textColor="@color/light_gray"
                         android:background="@drawable/button_off"/>
                 </LinearLayout>
-                <androidx.cardview.widget.CardView
-                    android:layout_width="wrap_content"
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/bar_chart"
+                    android:layout_width="match_parent"
                     android:layout_height="200dp"
-                    app:cardCornerRadius="30dp"
                     android:layout_margin="5dp"
-                    android:backgroundTint="@color/light_gray">
+                    android:backgroundTint="@color/light_gray"/>
+                <LinearLayout
+                    android:padding="5dp"
+                    android:layout_margin="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/chart"
+                    android:elevation="10dp">
                     <ImageView
-                        android:layout_width="fill_parent"
-                        android:layout_height="fill_parent"
-                        android:adjustViewBounds="true"
-                        android:src="@drawable/bar_chart_week" />
-                </androidx.cardview.widget.CardView>
-
+                        android:id="@+id/pre"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_pre"/>
+                    <View
+                        android:layout_width="2dp"
+                        android:layout_height="match_parent"
+                        android:background="@color/dark_gray"/>
+                    <TextView
+                        android:id="@+id/time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="This week"
+                        android:textSize="24dp"
+                        android:paddingLeft="5dp"
+                        android:paddingRight="5dp"
+                        android:textColor="@color/dark_gray"
+                        android:textStyle="bold"/>
+                    <View
+                        android:layout_width="2dp"
+                        android:layout_height="match_parent"
+                        android:background="@color/dark_gray"/>
+                    <ImageView
+                        android:id="@+id/next"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_next"/>
+                </LinearLayout>
             </LinearLayout>
             <View
                 android:layout_width="match_parent"
@@ -286,8 +304,7 @@
         android:background="@drawable/buttom"
         app:itemIconTint="@drawable/bottom_nav_color"
         app:itemTextColor="@drawable/bottom_nav_color"
-        app:labelVisibilityMode="labeled"
-        android:layout_marginBottom="-10dp"/>
+        app:labelVisibilityMode="labeled"/>
     <ImageView
         android:id="@+id/add_report"
         android:layout_width="70dp"
@@ -297,7 +314,8 @@
         android:translationZ="10dp"
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="30dp"
-        android:background="@drawable/circle"/>
+        android:layout_marginBottom="25dp"
+        android:background="@drawable/circle"
+        android:padding="10dp"/>
 
 </RelativeLayout>

@@ -1,6 +1,10 @@
 package com.example.pothole;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -9,6 +13,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class Map extends AppCompatActivity
         implements OnMapReadyCallback {
@@ -24,6 +29,29 @@ public class Map extends AppCompatActivity
                 .findFragmentById(R.id.map);
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+
+        // Set the default selected item (optional)
+        bottomNavigationView.setSelectedItemId(R.id.btn_map);
+
+        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.btn_home){
+                    startActivity(new Intent(Map.this, Home.class));
+                    return true;
+                } else if (itemId == R.id.btn_history){
+                    startActivity(new Intent(Map.this, History.class));
+                    return true;
+                } else if (itemId == R.id.btn_profile) {
+                    startActivity(new Intent(Map.this, Profile.class));
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     @Override

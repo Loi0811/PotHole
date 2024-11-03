@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -35,7 +36,11 @@ import java.util.ArrayList;
 public class Home extends AppCompatActivity {
 
     private Button weekButton, monthButton, yearButton;
+    private TextView time;
+    private ImageView pre, next;
     BarChart barChart;
+    int time1 = 0;
+    int time2 = 0;
 
     // Sample data for each time frame
     private final float[] weekData = {5, 10, 7, 15, 8, 12, 9}; // Example data for week
@@ -50,8 +55,14 @@ public class Home extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
         PieChart pieChart = findViewById(R.id.dount_chart);
+
+//        time.findViewById(R.id.time);
+//
+//        pre = findViewById(R.id.pre);
+//        next = findViewById(R.id.next);
+
+
 
         ArrayList<PieEntry> entries = new ArrayList<>();
         entries.add(new PieEntry(50));
@@ -99,6 +110,8 @@ public class Home extends AppCompatActivity {
         // Set up initial chart with week data
         setupBarChart(weekData,labelw);
 
+//        setTime(time1,time2);
+
         // Set click listeners for buttons
         weekButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,6 +121,9 @@ public class Home extends AppCompatActivity {
                 monthButton.setBackgroundResource(R.drawable.button_off);
                 yearButton.setBackgroundResource(R.drawable.button_off);
                 daily.setText("Weekly Pot Hole");
+                time1 = 0;
+                time2 = 0;
+//                setTime(time1,time2);
             }
         });
 
@@ -119,6 +135,9 @@ public class Home extends AppCompatActivity {
                 monthButton.setBackgroundResource(R.drawable.button);
                 yearButton.setBackgroundResource(R.drawable.button_off);
                 daily.setText("Monthly Pot Hole");
+                time1 = 1;
+                time2 = 0;
+//                setTime(time1,time2);
             }
         });
 
@@ -130,8 +149,31 @@ public class Home extends AppCompatActivity {
                 monthButton.setBackgroundResource(R.drawable.button_off);
                 yearButton.setBackgroundResource(R.drawable.button);
                 daily.setText("Yearly Pot Hole");
+                time1 = 2;
+                time2 = 0;
+//                setTime(time1,time2);
             }
         });
+
+//        pre.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if (time2 > 0) {
+//                    time2--;
+//                    setTime(time1, time2); // Update displayed time
+//                }
+//            }
+//        });
+//
+//        next.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if (time2 < 2) { // Maximum of 2 past intervals
+//                    time2++;
+//                    setTime(time1, time2); // Update displayed time
+//                }
+//            }
+//        });
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
@@ -145,11 +187,43 @@ public class Home extends AppCompatActivity {
                 if (itemId == R.id.btn_map){
                     startActivity(new Intent(Home.this, Map.class));
                     return true;
+                } else if (itemId == R.id.btn_history){
+                    startActivity(new Intent(Home.this, History.class));
+                    return true;
+                } else if (itemId == R.id.btn_profile) {
+                    startActivity(new Intent(Home.this, Profile.class));
+                    return true;
                 }
                 return false;
             }
         });
     }
+
+//    private void setTime(int time1, int time2) {
+//        String displayText;
+//
+//        switch (time1) {
+//            case 0: // Weekly
+//                if (time2 == 0) displayText = "This week";
+//                else if (time2 == 1) displayText = "1 week ago";
+//                else displayText = "2 weeks ago";
+//                break;
+//            case 1: // Monthly
+//                if (time2 == 0) displayText = "This month";
+//                else if (time2 == 1) displayText = "1 month ago";
+//                else displayText = "2 months ago";
+//                break;
+//            case 2: // Yearly
+//                if (time2 == 0) displayText = "2024";
+//                else if (time2 == 1) displayText = "2023";
+//                else displayText = "2022";
+//                break;
+//            default:
+//                displayText = "";
+//        }
+//
+//        time.setText(displayText);
+//    }
 
     private void setupBarChart(float[] data, String[] labels) {
         ArrayList<BarEntry> entries = new ArrayList<>();
@@ -177,6 +251,13 @@ public class Home extends AppCompatActivity {
         barChart.getXAxis().setGranularity(1f);
         barChart.getXAxis().setLabelCount(labels.length);
         barChart.getXAxis().setTypeface(Typeface.DEFAULT_BOLD);
+
+        barChart.getXAxis().setDrawGridLines(false); // Remove X-axis grid lines
+        barChart.getAxisLeft().setDrawGridLines(false); // Remove left Y-axis grid lines
+        barChart.getAxisRight().setDrawGridLines(false); // Remove right Y-axis grid lines
+
+        // Remove Y-axis on the right
+        barChart.getAxisRight().setEnabled(false);
 
         // Refresh the chart
         barChart.invalidate();

@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.pothole.Home;
@@ -30,7 +32,8 @@ public class SignUp extends AppCompatActivity {
         eyeIcon2 = findViewById(R.id.eye2);
         passwordField1 = findViewById(R.id.pwd1);
         passwordField2 = findViewById(R.id.pwd2);
-        Button signUpButton = findViewById(R.id.login);
+        Button signUpButton = findViewById(R.id.signup_btn);
+        TextView login = findViewById(R.id.login);
 
         // Back icon action: Navigate to the previous activity
         backIcon.setOnClickListener(new View.OnClickListener() {
@@ -96,6 +99,14 @@ public class SignUp extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(SignUp.this, Home.class);
+                startActivity(intent);
+            }
+        });
+
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SignUp.this, LogIn.class);
                 startActivity(intent);
             }
         });

@@ -28,6 +28,7 @@ public class LogIn extends AppCompatActivity {
         passwordField = findViewById(R.id.pwd);
         Button loginButton = findViewById(R.id.login_btn);
         TextView forgotPassword = findViewById(R.id.forgotpwd);
+        TextView signup = findViewById(R.id.signup);
 
         // Back icon action: Navigate to the previous activity
         backIcon.setOnClickListener(new View.OnClickListener() {
@@ -82,6 +83,14 @@ public class LogIn extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(LogIn.this, ForgotPassword.class);
+                startActivity(intent);
+            }
+        });
+
+        signup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LogIn.this, SignUp.class);
                 startActivity(intent);
             }
         });

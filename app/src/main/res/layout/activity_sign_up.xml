@@ -32,7 +32,8 @@
             android:layout_alignParentRight="true"/>
     </RelativeLayout>
     <LinearLayout
-        android:layout_margin="15dp"
+        android:layout_marginHorizontal="15dp"
+        android:layout_marginBottom="15dp"
         android:layout_below="@id/back_home"
         android:id="@+id/title_signup"
         android:layout_width="wrap_content"
@@ -45,7 +46,7 @@
             android:layout_marginTop="15dp"
             android:text="SI"
             android:textColor="@color/light_gray"
-            android:textSize="48dp"
+            android:textSize="40dp"
             android:textStyle="bold"
             android:shadowColor="@color/black"
             android:shadowDx="3"
@@ -57,7 +58,7 @@
             android:layout_marginTop="18dp"
             android:text="G"
             android:textColor="@color/light_gray"
-            android:textSize="48dp"
+            android:textSize="40dp"
             android:textStyle="bold"
             android:shadowColor="@color/black"
             android:shadowDx="3"
@@ -69,7 +70,7 @@
             android:layout_marginTop="15dp"
             android:text="N UP"
             android:textColor="@color/light_gray"
-            android:textSize="48dp"
+            android:textSize="40dp"
             android:textStyle="bold"
             android:shadowColor="@color/black"
             android:shadowDx="3"
@@ -170,7 +171,7 @@
                 android:layout_marginRight="10dp"/>
         </RelativeLayout>
         <Button
-            android:id="@+id/login"
+            android:id="@+id/signup_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/password2"
@@ -180,6 +181,30 @@
             android:background="@drawable/button"
             android:textColor="@color/light_gray"
             android:padding="10dp"/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/signup_btn"
+            android:layout_centerHorizontal="true">
+            <TextView
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Already a member! "
+                android:textSize="24dp"
+                android:textColor="@color/dark_gray"/>
+            <TextView
+                android:id="@+id/login"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Log in"
+                android:textSize="24dp"
+                android:textStyle="bold"
+                android:textColor="@color/dark_gray"/>
+        </LinearLayout>
+
 
     </RelativeLayout>
 

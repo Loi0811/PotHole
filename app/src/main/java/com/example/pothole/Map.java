@@ -102,7 +102,7 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
                         LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17));
                     } else {
                         Toast.makeText(Map.this, "Unable to find current location.", Toast.LENGTH_SHORT).show();
                     }
@@ -112,11 +112,11 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
     private void addMarkers() {
         // Example markers list
         List<MarkerData> markers = new ArrayList<>();
-        markers.add(new MarkerData(new LatLng(10.87, 106.8), 1, "Marker 1"));
-        markers.add(new MarkerData(new LatLng(10.88, 106.78), 2, "Marker 2"));
-        markers.add(new MarkerData(new LatLng(10.871, 106.8), 2, "Marker 3"));
-        markers.add(new MarkerData(new LatLng(10.87, 106.803), 3, "Marker 4"));
-        markers.add(new MarkerData(new LatLng(10.88, 106.8), 3, "Marker 5"));
+        markers.add(new MarkerData(new LatLng(10.87, 106.8), 1, "Caution"));
+        markers.add(new MarkerData(new LatLng(10.88, 106.78), 2, "Warning"));
+        markers.add(new MarkerData(new LatLng(10.871, 106.8), 2, "Warning"));
+        markers.add(new MarkerData(new LatLng(10.87, 106.803), 3, "Danger"));
+        markers.add(new MarkerData(new LatLng(10.88, 106.8), 3, "Danger"));
 
         // Add markers to map
         for (MarkerData marker : markers) {

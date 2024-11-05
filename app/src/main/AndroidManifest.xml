@@ -18,6 +18,9 @@
         android:theme="@style/Theme.PotHole"
         tools:targetApi="31">
         <activity
+            android:name=".Information"
+            android:exported="false" />
+        <activity
             android:name=".Setting"
             android:exported="false" />
         <activity

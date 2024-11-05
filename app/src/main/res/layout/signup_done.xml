@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/password_update"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/popup"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:gravity="center"
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp"
+    android:layout_margin="5dp"
+    android:elevation="10dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SIGN UP"
+        android:textStyle="bold"
+        android:textSize="40dp"
+        android:layout_marginTop="15dp"
+        android:textColor="@color/dark_gray"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SUCCESSFUL"
+        android:textStyle="bold"
+        android:textSize="40dp"
+        android:layout_marginBottom="15dp"
+        android:textColor="@color/dark_gray"/>
+    <ImageView
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/ic_done_foreground"
+        android:background="@drawable/done"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Complete sign up"
+        android:textSize="24dp"
+        android:layout_margin="15dp"
+        android:textColor="@color/dark_gray"/>
+    <Button
+        android:id="@+id/login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/pwd"
+        android:layout_margin="15dp"
+        android:text="LOG IN"
+        android:textSize="30dp"
+        android:background="@drawable/button"
+        android:textColor="@color/light_gray"
+        android:padding="10dp"/>
+</LinearLayout>

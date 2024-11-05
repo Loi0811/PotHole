@@ -20,9 +20,9 @@
         android:title="History"
         android:iconTint="@color/black"/>
     <item
-        android:id="@+id/btn_profile"
-        android:icon="@drawable/ic_account"
-        android:title="Profile"
+        android:id="@+id/btn_setting"
+        android:icon="@drawable/ic_setting"
+        android:title="Setting"
         android:iconTint="@color/black"/>
 
 

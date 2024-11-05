@@ -126,8 +126,9 @@ public class ChangePassword extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 popupWindow.dismiss(); // Close the popup
+                finish();
                 startActivity(new Intent(ChangePassword.this, LogIn.class));
-                finish();// Start Login Activity
+                // Start Login Activity
             }
         });
         popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0);

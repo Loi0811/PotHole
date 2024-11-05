@@ -37,7 +37,7 @@ public class Home extends AppCompatActivity {
 
     private Button weekButton, monthButton, yearButton;
     private TextView time;
-    private ImageView pre, next;
+    private ImageView pre, next, user;
     BarChart barChart;
     int time1 = 0;
     int time2 = 0;
@@ -56,6 +56,15 @@ public class Home extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         PieChart pieChart = findViewById(R.id.dount_chart);
+        user = findViewById(R.id.image);
+
+        user.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Home.this, Profile.class);
+                startActivity(intent);
+            }
+        });
 
 //        time.findViewById(R.id.time);
 //
@@ -190,8 +199,8 @@ public class Home extends AppCompatActivity {
                 } else if (itemId == R.id.btn_history){
                     startActivity(new Intent(Home.this, History.class));
                     return true;
-                } else if (itemId == R.id.btn_profile) {
-                    startActivity(new Intent(Home.this, Profile.class));
+                } else if (itemId == R.id.btn_setting) {
+                    startActivity(new Intent(Home.this, Setting.class));
                     return true;
                 }
                 return false;

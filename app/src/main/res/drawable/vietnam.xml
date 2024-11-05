@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="16dp"
+    android:viewportWidth="24"
+    android:viewportHeight="16">
+
+    <!-- Red background -->
+    <path
+        android:fillColor="#C8102E"
+        android:pathData="M0,0h24v16H0z" />
+
+    <!-- Yellow star in the center -->
+    <group
+        android:scaleX="0.7"
+        android:scaleY="0.7"
+        android:translateX="3.6"
+        android:translateY="2.4">
+    <path
+        android:fillColor="#FFCD00"
+        android:pathData="M12,2.5l1.5,4.6h4.8l-3.9,2.8l1.5,4.6L12,11.7l-3.9,2.8l1.5,-4.6l-3.9,-2.8h4.8z" />
+    </group>
+</vector>

@@ -70,11 +70,19 @@
         android:layout_marginRight="15dp"
         android:background="@drawable/bgdetail"
         android:layout_centerHorizontal="true">
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:background="@drawable/button_spinner"/>
         <Button
             android:id="@+id/login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="15dp"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
             android:text="LOG IN"
@@ -82,7 +90,8 @@
             android:elevation="10dp"
             android:background="@drawable/button"
             android:textColor="@color/light_gray"
-            android:padding="10dp"/>
+            android:padding="10dp"
+            android:layout_below="@id/spinner"/>
         <Button
             android:id="@+id/signup"
             android:layout_width="match_parent"

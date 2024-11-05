@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Spinner;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,5 +35,19 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        Spinner spinner = findViewById(R.id.spinner);
+
+//        // Create an array of spinner items
+        SpinnerItem[] items = {
+                new SpinnerItem(R.drawable.uk, "English(UK)"),
+                new SpinnerItem(R.drawable.vietnam, "Vietnamese")
+        };
+//
+//        // Set the adapter
+        CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(this, items);
+        spinner.setAdapter(adapter);
+//
+//        spinner.setSelection(0);
     }
 }

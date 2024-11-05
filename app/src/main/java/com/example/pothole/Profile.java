@@ -22,36 +22,12 @@ public class Profile extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        ImageView back = findViewById(R.id.back);
 
-        // Set the default selected item (optional)
-        bottomNavigationView.setSelectedItemId(R.id.btn_profile);
-
-        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int itemId = item.getItemId();
-                if (itemId == R.id.btn_home){
-                    startActivity(new Intent(Profile.this, Home.class));
-                    return true;
-                } else if (itemId == R.id.btn_history){
-                    startActivity(new Intent(Profile.this, History.class));
-                    return true;
-                } else if (itemId == R.id.btn_map) {
-                    startActivity(new Intent(Profile.this, Map.class));
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        ImageView setting = findViewById(R.id.setting);
-
-        setting.setOnClickListener(new View.OnClickListener() {
+        back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Profile.this, Setting.class);
-                startActivity(intent);
+                finish();
             }
         });
 

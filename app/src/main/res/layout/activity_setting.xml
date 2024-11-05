@@ -360,18 +360,12 @@
                             android:src="@drawable/ic_navigate_next"/>
                     </LinearLayout>
                 </LinearLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"/>
             </LinearLayout>
         </ScrollView>
     </androidx.cardview.widget.CardView>
-    <ImageView
-        android:id="@+id/back"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/ic_back_foreground"
-        android:background="@drawable/button_circle"
-        android:layout_marginTop="30dp"
-        android:layout_marginLeft="10dp"
-        android:layout_alignParentLeft="true"/>
     <ImageView
         android:id="@+id/home"
         android:layout_width="50dp"
@@ -381,4 +375,26 @@
         android:layout_marginRight="10dp"
         android:layout_marginTop="30dp"
         android:layout_alignParentRight="true"/>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        app:menu="@menu/menu_bottom"
+        android:background="@drawable/buttom"
+        app:itemIconTint="@drawable/bottom_nav_color"
+        app:itemTextColor="@drawable/bottom_nav_color"
+        app:labelVisibilityMode="labeled"/>
+    <ImageView
+        android:id="@+id/add_report"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:src="@drawable/baseline_report_problem_24"
+        android:backgroundTint="@color/gray"
+        android:translationZ="10dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:padding="10dp"
+        android:background="@drawable/circle"/>
 </RelativeLayout>

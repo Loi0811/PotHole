@@ -56,8 +56,8 @@ public class History extends AppCompatActivity {
                 } else if (itemId == R.id.btn_home){
                     startActivity(new Intent(History.this, Home.class));
                     return true;
-                } else if (itemId == R.id.btn_profile) {
-                    startActivity(new Intent(History.this, Profile.class));
+                } else if (itemId == R.id.btn_setting) {
+                    startActivity(new Intent(History.this, Setting.class));
                     return true;
                 }
                 return false;

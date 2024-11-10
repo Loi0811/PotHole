@@ -4,26 +4,30 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ListView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import java.util.ArrayList;
 
-public class History extends AppCompatActivity {
+public class History extends Fragment {
 
+    public History() {
+        // Required empty public constructor
+    }
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_history);
-        ListView listview = findViewById(R.id.list);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the fragment layout
+        View view = inflater.inflate(R.layout.fragment_history, container, false);
+
+        ListView listview = view.findViewById(R.id.list);
         ArrayList<HistoryItem> arrayList = new ArrayList<>();
         arrayList.add(new HistoryItem(R.drawable.pothole, "ADD REPORT", "Nguyen Du", "Di An", "Binh Duong", 10.88, 106.78, 10, 45, 2, 11, 2024, 3));
         arrayList.add(new HistoryItem(R.drawable.pothole, "ADD REPORT", "Nguyen Du", "Di An", "Binh Duong", 10.88, 106.78, 17, 45, 1, 11, 2024, 2));
@@ -38,30 +42,9 @@ public class History extends AppCompatActivity {
         arrayList.add(new HistoryItem(R.drawable.pothole, "ADD REPORT", "Nguyen Du", "Di An", "Binh Duong", 10.88, 106.78, 10, 45, 1, 9, 2024, 3));
         arrayList.add(new HistoryItem(R.drawable.pothole, "UPDATE REPORT", "Nguyen Du", "Di An", "Binh Duong", 10.88, 106.78, 8, 45, 1, 9, 2024, 3));
 
-        AdapterHistory adapter = new AdapterHistory(History.this, R.layout.item_history, arrayList);
+        AdapterHistory adapter = new AdapterHistory(getActivity(), R.layout.item_history, arrayList);
         listview.setAdapter(adapter);
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-
-        // Set the default selected item (optional)
-        bottomNavigationView.setSelectedItemId(R.id.btn_history);
-
-        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int itemId = item.getItemId();
-                if (itemId == R.id.btn_map){
-                    startActivity(new Intent(History.this, Map.class));
-                    return true;
-                } else if (itemId == R.id.btn_home){
-                    startActivity(new Intent(History.this, Home.class));
-                    return true;
-                } else if (itemId == R.id.btn_setting) {
-                    startActivity(new Intent(History.this, Setting.class));
-                    return true;
-                }
-                return false;
-            }
-        });
+        return view;
     }
 }

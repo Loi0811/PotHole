@@ -1,19 +1,19 @@
 package com.example.pothole;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -30,51 +30,36 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Map extends AppCompatActivity implements OnMapReadyCallback {
+public class Map extends Fragment implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the fragment layout
+        View view = inflater.inflate(R.layout.fragment_map, container, false);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        // Initialize the map fragment
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map);
-        assert mapFragment != null;
-        mapFragment.getMapAsync(this);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setSelectedItemId(R.id.btn_map);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
 
-        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int itemId = item.getItemId();
-                if (itemId == R.id.btn_home) {
-                    startActivity(new Intent(Map.this, Home.class));
-                    return true;
-                } else if (itemId == R.id.btn_history) {
-                    startActivity(new Intent(Map.this, History.class));
-                    return true;
-                } else if (itemId == R.id.btn_setting) {
-                    startActivity(new Intent(Map.this, Profile.class));
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        ImageView jumpToMyLocationButton = findViewById(R.id.my_location);
+        ImageView jumpToMyLocationButton = view.findViewById(R.id.my_location);
         jumpToMyLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getCurrentLocation();
             }
         });
+
+        return view;
     }
 
     @Override
@@ -89,22 +74,22 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
     }
 
     private void getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Request permissions if not granted
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(getActivity(),
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     1);
             return;
         }
 
         fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, location -> {
+                .addOnSuccessListener(getActivity(), location -> {
                     if (location != null) {
                         LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17));
                     } else {
-                        Toast.makeText(Map.this, "Unable to find current location.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "Unable to find current location.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -171,7 +156,7 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getCurrentLocation();
             } else {
-                Toast.makeText(this, "Permission denied to access location.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Permission denied to access location.", Toast.LENGTH_SHORT).show();
             }
         }
     }

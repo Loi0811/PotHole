@@ -11,8 +11,6 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.pothole.Home;
-
 public class SignUp extends AppCompatActivity {
 
     private ImageView backIcon, homeIcon, eyeIcon1, eyeIcon2;

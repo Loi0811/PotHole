@@ -85,6 +85,8 @@ public class Verification extends AppCompatActivity {
                     // Add your verification logic here
                     Toast.makeText(Verification.this, "Verification Success", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(Verification.this, ChangePassword.class);
+                    String email = getIntent().getStringExtra("sendemail");
+                    intent.putExtra("useremail",email);
                     startActivity(intent);
                     finish();
                 } else {

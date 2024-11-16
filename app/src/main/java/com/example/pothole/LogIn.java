@@ -1,31 +1,42 @@
 package com.example.pothole;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LogIn extends AppCompatActivity {
 
     private ImageView backIcon, homeIcon, eyeIcon;
-    private EditText passwordField;
+    private EditText emailField,passwordField;
     private boolean isPasswordVisible = false;
+    private UserApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_in);
+        apiService = ApiClient.getClient(isEmulator()).create(UserApiService.class);
 
         // Initialize views
         backIcon = findViewById(R.id.back);
         homeIcon = findViewById(R.id.home);
         eyeIcon = findViewById(R.id.eye);
         passwordField = findViewById(R.id.pwd);
+        emailField = findViewById(R.id.user);
         Button loginButton = findViewById(R.id.login_btn);
         TextView forgotPassword = findViewById(R.id.forgotpwd);
         TextView signup = findViewById(R.id.signup);
@@ -73,8 +84,13 @@ public class LogIn extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(LogIn.this, Home.class);
-                startActivity(intent);
+                String email = emailField.getText().toString().trim();
+                String password = passwordField.getText().toString().trim();
+                if (email.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(LogIn.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
+                } else {
+                    loginUser(email, password);
+                }
             }
         });
 
@@ -95,5 +111,55 @@ public class LogIn extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+    private void loginUser(String email, String password) {
+        Userlogin user = new Userlogin(email, password);
+
+        apiService.loginUser(user).enqueue(new Callback<ApiResponse>() {
+            @Override
+            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse apiResponse = response.body();
+                    if (apiResponse.isStatus()) {
+                        // Successful login
+                        String token = apiResponse.getToken();
+                        Toast.makeText(LogIn.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(LogIn.this, Home.class);
+                        intent.putExtra("token", token); // Pass token to Home activity if needed
+                        startActivity(intent);
+                    } else {
+                        // Login failed with custom message from the response
+                        Toast.makeText(LogIn.this, apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // Handle 401 Unauthorized (incorrect credentials)
+                    if (response.code() == 401) {
+                        Toast.makeText(LogIn.this, "Incorrect email or password", Toast.LENGTH_SHORT).show();
+                    }
+                    // Handle 404 Not Found (user not found)
+                    else if (response.code() == 404) {
+                        Toast.makeText(LogIn.this, "User not found", Toast.LENGTH_SHORT).show();
+                    }
+                    // Handle other errors
+                    else {
+                        Toast.makeText(LogIn.this, "Login error: " + response.message(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+
+            @Override
+            public void onFailure(Call<ApiResponse> call, Throwable t) {
+                Log.e("LOGIN_ERROR", "Error logging in", t);
+                Toast.makeText(LogIn.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    public static boolean isEmulator() {
+        return Build.FINGERPRINT.contains("generic") ||
+                Build.MODEL.contains("Emulator") ||
+                Build.MANUFACTURER.contains("Genymotion") ||
+                (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic")) ||
+                "google_sdk".equals(Build.PRODUCT);
     }
 }

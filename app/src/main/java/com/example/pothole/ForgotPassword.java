@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
@@ -13,6 +14,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class ForgotPassword extends AppCompatActivity {
+    EditText email;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,11 +24,15 @@ public class ForgotPassword extends AppCompatActivity {
         Button continueButton = findViewById(R.id.continue_btn);
         ImageView backIcon = findViewById(R.id.back);
         ImageView homeIcon = findViewById(R.id.home);
+        email = findViewById(R.id.user);
+
 
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ForgotPassword.this, Verification.class);
+                String emailtext = email.getText().toString().trim();
+                intent.putExtra("sendemail",emailtext );
                 startActivity(intent);
                 finish();
             }

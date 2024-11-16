@@ -2,6 +2,7 @@ package com.example.pothole;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -12,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +22,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import retrofit2.Call;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class ChangePassword extends AppCompatActivity {
 
     private ImageView backIcon, homeIcon, eyeIcon1, eyeIcon2;
@@ -27,11 +34,14 @@ public class ChangePassword extends AppCompatActivity {
     private boolean isPasswordVisible1 = false;
     private boolean isPasswordVisible2 = false;
     private Button change;
+    private UserApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_password);
+
+        apiService = ApiClient.getClient(isEmulator()).create(UserApiService.class);
 
         backIcon = findViewById(R.id.back);
         homeIcon = findViewById(R.id.home);
@@ -102,7 +112,9 @@ public class ChangePassword extends AppCompatActivity {
         change.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showPasswordUpdatePopup(v);
+                String email = getIntent().getStringExtra("useremail");
+                Toast.makeText(ChangePassword.this, email, Toast.LENGTH_SHORT).show();
+                updatePassword(email);
             }
         });
 
@@ -132,5 +144,49 @@ public class ChangePassword extends AppCompatActivity {
             }
         });
         popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0);
+    }
+
+    public void updatePassword(String email) {
+        String newPassword1 = passwordField1.getText().toString().trim();
+        String newPassword2 = passwordField2.getText().toString().trim();
+
+        if (newPassword1.isEmpty() || newPassword2.isEmpty()) {
+            Toast.makeText(ChangePassword.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!newPassword1.equals(newPassword2)) {
+            Toast.makeText(ChangePassword.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        PasswordUpdateRequest request = new PasswordUpdateRequest(email, newPassword1);
+        apiService.updatePassword(request).enqueue(new Callback<ApiResponse>() {
+            @Override
+            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+                if (response.isSuccessful()) {
+                    ApiResponse apiResponse = response.body();
+                    if (apiResponse != null && apiResponse.isStatus()) {
+                        Toast.makeText(ChangePassword.this, "Password updated successfully", Toast.LENGTH_SHORT).show();
+                        showPasswordUpdatePopup(change);
+                    } else {
+                        Toast.makeText(ChangePassword.this, apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(ChangePassword.this, "Error: " + response.message(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse> call, Throwable t) {
+                Toast.makeText(ChangePassword.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    public static boolean isEmulator() {
+        return Build.FINGERPRINT.contains("generic") ||
+                Build.MODEL.contains("Emulator") ||
+                Build.MANUFACTURER.contains("Genymotion") ||
+                (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic")) ||
+                "google_sdk".equals(Build.PRODUCT);
     }
 }

@@ -21,5 +21,8 @@ public interface UserApiService {
 
     @PUT("update-password")
     Call<ApiResponse> updatePassword(@Body PasswordUpdateRequest request);
+
+    @POST("add-pothole")
+    Call<ApiResponse> addPothole(@Body Pothole pothole);
 }
 

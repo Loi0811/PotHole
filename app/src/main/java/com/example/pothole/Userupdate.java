@@ -3,7 +3,7 @@ package com.example.pothole;
 public class Userupdate {
     private String name;
     private String phone;
-    private Address address;
+    private AddressUser address;
     private String birthday;
     private String gender;
 
@@ -23,12 +23,12 @@ public class Userupdate {
         this.birthday = birthday;
     }
 
-    public Address getAddress() {
+    public AddressUser getAddress() {
         return address;
     }
 
-    public void setAddress(Address address) {
-        this.address = address;
+    public void setAddress(AddressUser addressUser) {
+        this.address = addressUser;
     }
 
     public String getPhone() {

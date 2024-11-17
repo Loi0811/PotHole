@@ -1,10 +1,17 @@
 package com.example.pothole;
 
-public class Address {
+public class AddressPothole {
+    private String streetName;
     private String district;
     private String province;
 
-    // Getters and Setters
+    public String getStreetName() {
+        return streetName;
+    }
+
+    public void setStreetName(String streetName) {
+        this.streetName = streetName;
+    }
 
     public String getDistrict() {
         return district;

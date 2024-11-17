@@ -5,7 +5,7 @@ public class User {
     private String email;
     private String password;
     private String phone;
-    private Address address;
+    private AddressUser address;
     private String birthday;
     private String gender;
     private String cteate;
@@ -44,12 +44,12 @@ public class User {
         this.phone = phone;
     }
 
-    public Address getAddress() {
+    public AddressUser getAddress() {
         return address;
     }
 
-    public void setAddress(Address address) {
-        this.address = address;
+    public void setAddress(AddressUser addressUser) {
+        this.address = addressUser;
     }
 
     public String getPassword() {

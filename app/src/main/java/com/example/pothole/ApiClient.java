@@ -14,7 +14,7 @@ public class ApiClient {
             baseUrl = "http://10.0.2.2:3000/";
         } else {
             // URL for Real Device - replace with your local IP
-            baseUrl = "http://10.45.141.80:3000/";
+            baseUrl = "http://10.0.223.56:3000/";
         }
 
         if (retrofit == null) {

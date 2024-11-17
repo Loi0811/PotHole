@@ -16,23 +16,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.Date;
 
 public class SignUp extends AppCompatActivity {
 
@@ -155,7 +144,7 @@ public class SignUp extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
         String currentDate = sdf.format(new Date());
 
-        Address address = new Address();
+        AddressUser address = new AddressUser();
         address.setDistrict("district");
         address.setProvince("province");
 

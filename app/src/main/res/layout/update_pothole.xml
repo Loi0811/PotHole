@@ -1,19 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:background="@color/light_gray"
     android:orientation="vertical"
     android:layout_gravity="center_horizontal">
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ADD POTHOLE"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="15dp"
-        android:textStyle="bold"
-        android:textSize="36dp"
-        android:textColor="@color/dark_gray"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="POTHOLE"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="15dp"
+            android:textStyle="bold"
+            android:textSize="36dp"
+            android:textColor="@color/dark_gray"/>
+        <ImageView
+            android:id="@+id/cancel"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="15dp"
+            android:src="@drawable/ic_back_foreground"/>
+    </RelativeLayout>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -103,25 +114,27 @@
         android:layout_marginTop="10dp"
         android:layout_marginHorizontal="15dp"
         android:orientation="horizontal">
-        <EditText
+
+        <TextView
             android:id="@+id/latitude"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Latitude"
+            android:layout_weight="1"
+            android:background="@drawable/edittext"
+            android:maxLines="1"
             android:padding="5dp"
+            android:text="latitude"
             android:textColor="@color/dark_gray"
             android:textSize="24dp"
-            android:background="@drawable/edittext"
-            android:layout_weight="1"
-            android:maxLines="1"
             android:ellipsize="end"
             android:scrollHorizontally="true"
             android:singleLine="true"/>
-        <EditText
+
+        <TextView
             android:id="@+id/longitude"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Longitude"
+            android:text="longitude"
             android:padding="5dp"
             android:textColor="@color/dark_gray"
             android:textSize="24dp"
@@ -131,13 +144,6 @@
             android:ellipsize="end"
             android:scrollHorizontally="true"
             android:singleLine="true"/>
-        <ImageView
-            android:id="@+id/geocoder"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_my_location"
-            android:background="@drawable/circle"
-            android:padding="5dp"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -147,10 +153,10 @@
         android:layout_marginHorizontal="15dp"
         android:orientation="horizontal">
         <Button
-            android:id="@+id/cancel"
+            android:id="@+id/delete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="cancel"
+            android:text="Delete"
             android:padding="10dp"
             android:textColor="@color/dark_gray"
             android:textSize="24dp"
@@ -158,10 +164,10 @@
             android:layout_weight="1"
             android:maxLines="1"/>
         <Button
-            android:id="@+id/add"
+            android:id="@+id/update"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="add"
+            android:text="update"
             android:padding="10dp"
             android:textColor="@color/light_gray"
             android:textSize="24dp"

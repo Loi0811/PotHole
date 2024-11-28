@@ -21,6 +21,14 @@ import androidx.core.view.WindowInsetsCompat;
 
 import java.util.Timer;
 
+import android.os.AsyncTask;
+
+import java.util.Random;
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.util.Properties;
+
 public class Verification extends AppCompatActivity {
 
     private EditText otpDigit1, otpDigit2, otpDigit3, otpDigit4;
@@ -29,6 +37,11 @@ public class Verification extends AppCompatActivity {
     private ImageView backIcon, homeIcon;
     private CountDownTimer countDownTimer;
     private static final long START_TIME_IN_MILLIS = 60000; // 60 seconds
+
+    private String userEmail; // Email nhận OTP
+    private String generatedOtp; // Lưu OTP đã tạo
+
+    private boolean isCountdownFinished = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +57,12 @@ public class Verification extends AppCompatActivity {
         verifyButton = findViewById(R.id.login);
         backIcon = findViewById(R.id.back);
         homeIcon = findViewById(R.id.home);
+
+        userEmail = getIntent().getStringExtra("sendemail");
+
+        // Gửi OTP đến email khi Activity được khởi tạo
+        generatedOtp = generateOtp();
+        sendOtpEmail(userEmail, generatedOtp);
 
         startCountdown();
 
@@ -72,31 +91,34 @@ public class Verification extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 resetCountdown();
+                generatedOtp = generateOtp();
+                sendOtpEmail(userEmail, generatedOtp);
                 Toast.makeText(Verification.this, "Code resent", Toast.LENGTH_SHORT).show();
             }
         });
 
-        verifyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        verifyButton.setOnClickListener(v -> {
+            if (!isCountdownFinished) { // Kiểm tra countdown trước khi xác thực
                 String otp = otpDigit1.getText().toString() + otpDigit2.getText().toString() +
                         otpDigit3.getText().toString() + otpDigit4.getText().toString();
-                if (otp.length() == 4) {
-                    // Add your verification logic here
+                if (otp.equals(generatedOtp)) {
                     Toast.makeText(Verification.this, "Verification Success", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(Verification.this, ChangePassword.class);
-                    String email = getIntent().getStringExtra("sendemail");
-                    intent.putExtra("useremail",email);
+                    intent.putExtra("useremail", userEmail);
                     startActivity(intent);
                     finish();
                 } else {
-                    Toast.makeText(Verification.this, "Please enter all 4 digits", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Verification.this, "Invalid OTP", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                Toast.makeText(Verification.this, "OTP has expired. Please resend the code.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void startCountdown() {
+        isCountdownFinished = false; // Countdown bắt đầu
+        resendCode.setEnabled(false);
         countDownTimer = new CountDownTimer(START_TIME_IN_MILLIS, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -106,6 +128,8 @@ public class Verification extends AppCompatActivity {
             @Override
             public void onFinish() {
                 secCountdown.setText("0");
+                isCountdownFinished = true; // Countdown kết thúc
+                resendCode.setEnabled(true);
             }
         }.start();
     }
@@ -159,6 +183,47 @@ public class Verification extends AppCompatActivity {
 
         @Override
         public void afterTextChanged(Editable s) {}
+    }
+
+
+    private String generateOtp() {
+        Random random = new Random();
+        int otp = 1000 + random.nextInt(9000); // Tạo mã OTP ngẫu nhiên từ 1000 đến 9999
+        return String.valueOf(otp);
+    }
+
+    private void sendOtpEmail(String recipientEmail, String otp) {
+        AsyncTask.execute(() -> {
+            try {
+                String senderEmail = "apptest1470@gmail.com";
+                String senderPassword = "knsmmdzkbqkezcyt";
+
+                Properties props = new Properties();
+                props.put("mail.smtp.host", "smtp.gmail.com");
+                props.put("mail.smtp.socketFactory.port", "465");
+                props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+                props.put("mail.smtp.auth", "true");
+                props.put("mail.smtp.port", "465");
+
+                Session session = Session.getInstance(props, new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(senderEmail, senderPassword);
+                    }
+                });
+
+                MimeMessage message = new MimeMessage(session);
+                message.setFrom(new InternetAddress(senderEmail));
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
+                message.setSubject("Your Verification Code");
+                message.setText("Your OTP is: " + otp);
+
+                Transport.send(message);
+            } catch (MessagingException e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(Verification.this, "Failed to send email", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
 
     @Override

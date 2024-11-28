@@ -30,11 +30,15 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -54,6 +58,7 @@ public class Home extends AppCompatActivity {
     private double latitude, longitude;
     private UserApiService apiService;
     private FusedLocationProviderClient fusedLocationClient;
+    private List<PotholeClass> potholes = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +67,14 @@ public class Home extends AppCompatActivity {
         apiService = ApiClient.getClient(isEmulator()).create(UserApiService.class);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         getLastLocation();
+        fetchPotholesByAuthor("author@gm.com");
 
         ImageView addReport = findViewById(R.id.add_report);
+        dashboardFragment = new Dashboard();
+        mapFragment = new Map();
+        historyFragment = new History();
+        settingFragment = new Setting();
+
         addReport.setOnClickListener(v -> {
             // Tạo dialog
             getLastLocation();
@@ -72,13 +83,16 @@ public class Home extends AppCompatActivity {
 
             // Lấy các thành phần từ dialog
             Spinner typeSpinner = dialog.findViewById(R.id.type);
-            TextView streetTextView = dialog.findViewById(R.id.street);
-            TextView districtTextView = dialog.findViewById(R.id.district);
-            TextView provinceTextView = dialog.findViewById(R.id.province);
+            EditText streetTextView = dialog.findViewById(R.id.street);
+            EditText districtTextView = dialog.findViewById(R.id.district);
+            EditText provinceTextView = dialog.findViewById(R.id.province);
             EditText latitudeEditText = dialog.findViewById(R.id.latitude);
             EditText longitudeEditText = dialog.findViewById(R.id.longitude);
             Button cancelButton = dialog.findViewById(R.id.cancel);
             Button addButton = dialog.findViewById(R.id.add);
+            ImageView geocoderbtn = dialog.findViewById(R.id.geocoder);
+
+
 
             // Thiết lập dữ liệu cho Spinner
             String[] potholeTypes = {"Caution", "Warning", "Danger"};
@@ -90,38 +104,10 @@ public class Home extends AppCompatActivity {
             latitudeEditText.setText(String.valueOf(latitude));
             longitudeEditText.setText(String.valueOf(longitude));
 
-            latitudeEditText.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                    // Không cần xử lý
-                }
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-                    updateAddressFromCoordinates(latitudeEditText, longitudeEditText, streetTextView, districtTextView, provinceTextView);
-                }
+            geocoderbtn.setOnClickListener(v3 -> {
+                updateAddressFromCoordinates(latitudeEditText,longitudeEditText,streetTextView,districtTextView,provinceTextView);
             });
 
-            longitudeEditText.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                    // Không cần xử lý
-                }
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-                    updateAddressFromCoordinates(latitudeEditText, longitudeEditText, streetTextView, districtTextView, provinceTextView);
-                }
-            });
 
 
             // Dùng Geocoder để lấy địa chỉ từ tọa độ
@@ -159,6 +145,10 @@ public class Home extends AppCompatActivity {
                 }
 
                 String userEmail = "author@gm.com";
+                AddressPothole addressPothole = new AddressPothole();
+                addressPothole.setStreetName(streetTextView.getText().toString());
+                addressPothole.setDistrict(districtTextView.getText().toString());
+                addressPothole.setProvince(provinceTextView.getText().toString());
 
                 // Tạo đối tượng Pothole
                 Pothole pothole = new Pothole();
@@ -167,12 +157,22 @@ public class Home extends AppCompatActivity {
                 pothole.setLongitude(longitude);
                 pothole.setDate(getCurrentDateTime());
                 pothole.setAuthor(userEmail);
-
-                AddressPothole addressPothole = new AddressPothole();
-                addressPothole.setStreetName(streetTextView.getText().toString());
-                addressPothole.setDistrict(districtTextView.getText().toString());
-                addressPothole.setProvince(provinceTextView.getText().toString());
                 pothole.setAddressPothole(addressPothole);
+
+                AddressPotholeClass addressPotholeClass = new AddressPotholeClass();
+                addressPotholeClass.setStreetName(streetTextView.getText().toString());
+                addressPotholeClass.setDistrict(districtTextView.getText().toString());
+                addressPotholeClass.setProvince(provinceTextView.getText().toString());
+
+                PotholeClass newPothole = new PotholeClass();
+                newPothole.setType(type);
+                newPothole.setLatitude(latitude);
+                newPothole.setLongitude(longitude);
+                newPothole.setDate(getCurrentDateTime());
+                newPothole.setAuthor(userEmail);
+                newPothole.setAddressPothole(addressPotholeClass);
+
+
 
                 // Gửi API để thêm ổ gà
                 apiService.addPothole(pothole).enqueue(new Callback<ApiResponse>() {
@@ -181,6 +181,13 @@ public class Home extends AppCompatActivity {
                         if (response.isSuccessful() && response.body() != null) {
                             ApiResponse apiResponse = response.body();
                             if (apiResponse.isStatus()) {
+                                Fragment mapFragment = (Fragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
+
+                                if (mapFragment instanceof OnPotholeAddedListener) {
+                                    ((OnPotholeAddedListener) mapFragment).onPotholeAdded(newPothole);
+                                }
+                                potholes.add(newPothole);
+
                                 // Thêm ổ gà thành công
                                 Toast.makeText(Home.this, "Pothole added successfully!", Toast.LENGTH_SHORT).show();
                             } else {
@@ -208,6 +215,7 @@ public class Home extends AppCompatActivity {
                         Toast.makeText(Home.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+                dialog.dismiss();
             });
 
             dialog.show();
@@ -220,10 +228,7 @@ public class Home extends AppCompatActivity {
 
 
         // Initialize fragments
-        dashboardFragment = new Dashboard();
-        mapFragment = new Map();
-        historyFragment = new History();
-        settingFragment = new Setting();
+
 
         // Load the default fragment (Dashboard) when activity starts
         if (savedInstanceState == null) {
@@ -294,7 +299,7 @@ public class Home extends AppCompatActivity {
                 "google_sdk".equals(Build.PRODUCT);
     }
     private void updateAddressFromCoordinates(EditText latitudeEditText, EditText longitudeEditText,
-                                              TextView streetTextView, TextView districtTextView, TextView provinceTextView) {
+                                              EditText streetTextView, EditText districtTextView, EditText provinceTextView) {
         String latitudeText = latitudeEditText.getText().toString();
         String longitudeText = longitudeEditText.getText().toString();
 
@@ -349,4 +354,27 @@ public class Home extends AppCompatActivity {
                 });
     }
 
+    private void fetchPotholesByAuthor(String authorEmail) {
+        apiService.getPotholes(authorEmail).enqueue(new Callback<PotholeResponse>() {
+            @Override
+            public void onResponse(Call<PotholeResponse> call, Response<PotholeResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    PotholeResponse potholeResponse = response.body();
+                    potholes = potholeResponse.getPotholes();
+                    Toast.makeText(Home.this, "OK", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(Home.this, "Failed to load potholes", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PotholeResponse> call, Throwable t) {
+                Toast.makeText(Home.this, "Error fetching potholes: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public List<PotholeClass> getPotholeList() {
+        return potholes;
+    }
 }

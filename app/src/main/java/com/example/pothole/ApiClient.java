@@ -11,10 +11,12 @@ public class ApiClient {
 
         if (isEmulator) {
             // URL for Emulator
-            baseUrl = "http://10.0.2.2:3000/";
+            baseUrl = "https://optimal-card-440506-e3.as.r.appspot.com/";
+//            baseUrl = "http://10.0.2.2:3000/";
         } else {
             // URL for Real Device - replace with your local IP
-            baseUrl = "http://10.0.230.107:3000/";
+            baseUrl = "https://optimal-card-440506-e3.as.r.appspot.com/";
+//            baseUrl = "http://192.168.155.175:3000/";
         }
 
         if (retrofit == null) {

@@ -32,7 +32,7 @@ import java.util.ArrayList;
 public class Dashboard extends Fragment {
 
     private Button weekButton, monthButton, yearButton;
-    private TextView time;
+    private TextView time,name;
     private ImageView pre, next, user;
     private BarChart barChart;
     private int time1 = 0;
@@ -46,6 +46,8 @@ public class Dashboard extends Fragment {
     private String[] labelw = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
     private String[] labelm = {"W1", "W2", "W3", "W4"};
     private String[] labely = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"};
+
+    private User userlogin;
 
     public Dashboard() {
         // Required empty public constructor
@@ -64,12 +66,26 @@ public class Dashboard extends Fragment {
         monthButton = view.findViewById(R.id.month);
         yearButton = view.findViewById(R.id.year);
         TextView daily = view.findViewById(R.id.daily);
+        name = view.findViewById(R.id.name);
+
+
 
         // Set up user profile navigation
         user.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), Profile.class);
             startActivity(intent);
         });
+
+        Home homeActivity = (Home) getActivity();
+        if (homeActivity != null) {
+            userlogin = homeActivity.getUser();
+        }
+        if (userlogin != null){
+            String nameuser = userlogin.getName();
+
+            name.setText(nameuser);
+        }
+
 
         // Pie chart setup
         ArrayList<PieEntry> entries = new ArrayList<>();

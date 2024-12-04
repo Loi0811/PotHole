@@ -1,6 +1,7 @@
 package com.example.pothole;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
@@ -124,6 +125,14 @@ public class LogIn extends AppCompatActivity {
                         // Successful login
                         String token = apiResponse.getToken();
                         Toast.makeText(LogIn.this, "Login successful!", Toast.LENGTH_SHORT).show();
+
+                        SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("Email", email);
+                        editor.putString("Password", password);
+                        editor.putBoolean("GoogleLogin", false);
+                        editor.apply();
+
                         Intent intent = new Intent(LogIn.this, Home.class);
                         intent.putExtra("token", token); // Pass token to Home activity if needed
                         startActivity(intent);

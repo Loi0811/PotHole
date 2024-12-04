@@ -1,9 +1,12 @@
 package com.example.pothole;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -24,6 +27,7 @@ import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -114,6 +118,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private List<Marker> markers = new ArrayList<>();
     private LinearLayout note;
     private TextView des, near_pothole;
+    private String userEmail;
 
 
     private SensorEventListener sensorEventListener = new SensorEventListener() {
@@ -178,9 +183,11 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         des = view.findViewById(R.id.destination);
         near_pothole = view.findViewById(R.id.pothole_nearest);
 
+
         Home homeActivity = (Home) getActivity();
         if (homeActivity != null) {
             potholes = homeActivity.getPotholeList();
+            userEmail = homeActivity.getUseremail();
         }
 
         clearButton.setOnClickListener(v -> {
@@ -192,7 +199,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             if (destination != null) {
                 // Reset trạng thái đã vẽ đường
                 drawRouteToDestination(destination);
-                stopButton.setVisibility(View.VISIBLE);
             } else {
                 Toast.makeText(getActivity(), "Vui lòng chọn điểm đến", Toast.LENGTH_SHORT).show();
             }
@@ -259,7 +265,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 // Ánh xạ các thành phần trong layout
                 TextView title = view.findViewById(R.id.title);
                 TextView snippet = view.findViewById(R.id.snippet);
-                Button btnUpdate = view.findViewById(R.id.btn_update);
 
                 // Lấy dữ liệu từ marker và hiển thị
                 title.setText(marker.getTitle());
@@ -326,7 +331,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 .setNeutralButton("Direction", (dialog, which) -> {
                     // Gọi hàm điều hướng đến vị trí
                     destination = latLng;
-                    String value = "Position: " + latLng.latitude + "," + latLng.longitude;
+                    String value = "Destination";
                     if (destinationMarker1 != null) {
                         destinationMarker1.remove();
                     }
@@ -419,7 +424,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 return;
             }
 
-            String userEmail = "author@gm.com";
+
             AddressPothole addressPothole = new AddressPothole();
             addressPothole.setStreetName(streetTextView.getText().toString());
             addressPothole.setDistrict(districtTextView.getText().toString());
@@ -509,6 +514,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         Window window = dialog.getWindow();
         if (window != null) {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.CENTER);
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Xóa nền mặc định
         }
     }
@@ -567,6 +573,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         Button btnUpdate = dialogView.findViewById(R.id.update);
         Button btnDelete = dialogView.findViewById(R.id.delete);
         ImageView btnCancel = dialogView.findViewById(R.id.cancel);
+        TextView date = dialogView.findViewById(R.id.date);
 
         // Lấy dữ liệu từ marker hoặc đối tượng gắn trong tag
         PotholeClass pothole = (PotholeClass) marker.getTag();
@@ -576,6 +583,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             province.setText(pothole.getAddressPothole().getProvince());
             latitude.setText(String.valueOf(marker.getPosition().latitude));
             longitude.setText(String.valueOf(marker.getPosition().longitude));
+            date.setText(pothole.getDate());
             // Chọn đúng loại trong Spinner
             String[] potholeTypes = {"Caution", "Warning", "Danger"};
             ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, potholeTypes);
@@ -658,7 +666,8 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
 
             // Đặt cửa sổ dialog chiếm toàn bộ màn hình
             params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            params.gravity = Gravity.CENTER;
 
             // Áp dụng các thay đổi
             window.setAttributes(params);
@@ -736,9 +745,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     public String getCurrentTime() {
         // Tạo đối tượng SimpleDateFormat với định dạng mong muốn
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-
-        // Đặt múi giờ là UTC (Z ở cuối chỉ UTC)
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // Lấy thời gian hiện tại
         Date date = new Date();
@@ -841,7 +847,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                     Toast.makeText(getActivity(), "Latitude: " + latitude + ", Longitude: " + longitude, Toast.LENGTH_SHORT).show();
                     getAddressFromLocation(latitude, longitude);
                     int type = 1;
-                    String author = "author@gm.com";
                     AddressPothole addressPothole = new AddressPothole();
                     AddressPotholeClass addressPotholeClass = new AddressPotholeClass();
                     addressPothole.setStreetName(streetName);
@@ -859,14 +864,14 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                     pothole.setLongitude(longitude);
                     pothole.setDate(getCurrentTime());
                     pothole.setType(type);
-                    pothole.setAuthor(author);
+                    pothole.setAuthor(userEmail);
 
                     potholeClass.setAddressPothole(addressPotholeClass);
                     potholeClass.setLatitude(latitude);
                     potholeClass.setLongitude(longitude);
                     potholeClass.setDate(getCurrentTime());
                     potholeClass.setType(type);
-                    potholeClass.setAuthor(author);
+                    potholeClass.setAuthor(userEmail);
 
                     addPothole(pothole);
 
@@ -991,7 +996,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
 
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17));
 
-                        note.setVisibility(View.VISIBLE);
+
                         PotholeClass nearestPothole = getNearestPothole(currentLocation);
                         if (nearestPothole != null) {
                             double distanceToNearest = calculateDistance(currentLocation, new LatLng(nearestPothole.getLatitude(), nearestPothole.getLongitude()));
@@ -1023,32 +1028,35 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 if (location != null) {
                     LatLng newLatLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-                    PotholeClass nearestPothole = getNearestPothole(newLatLng);
-                    if (nearestPothole != null) {
-                        double distanceToNearest = calculateDistance(newLatLng, new LatLng(nearestPothole.getLatitude(), nearestPothole.getLongitude()));
+                    if(isRouteDrawn){
+                        PotholeClass nearestPothole = getNearestPothole(newLatLng);
+                        if (nearestPothole != null) {
+                            double distanceToNearest = calculateDistance(newLatLng, new LatLng(nearestPothole.getLatitude(), nearestPothole.getLongitude()));
 
-                        // Hiển thị khoảng cách
-                        int value = (int) distanceToNearest;
-                        String data = "Nearest pothole: " + value + "m";
-                        near_pothole.setText(data);
 
-                        // Đánh dấu ổ gà đã đi qua (nếu khoảng cách nhỏ hơn ngưỡng, ví dụ: 10 mét)
-                        if (distanceToNearest <= 10) {
-                            markers.removeIf(marker -> {
-                                if (marker.getTag() == nearestPothole) {
-                                    marker.remove(); // Xóa marker khỏi bản đồ
-                                    return true; // Xóa khỏi danh sách markers
-                                }
-                                return false;
-                            });
-                            Toast.makeText(requireContext(), "Pothole passed!", Toast.LENGTH_SHORT).show();
+                            int value = (int) distanceToNearest;
+                            String data = "Nearest pothole: " + value + "m";
+                            near_pothole.setText(data);
+
+
+                            if (distanceToNearest <= 10) {
+                                markers.removeIf(marker -> {
+                                    if (marker.getTag() == nearestPothole) {
+                                        marker.remove(); // Xóa marker khỏi bản đồ
+                                        return true; // Xóa khỏi danh sách markers
+                                    }
+                                    return false;
+                                });
+                                Toast.makeText(requireContext(), "Pothole passed!", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            near_pothole.setText("No pothole");
                         }
-                    } else {
-                        near_pothole.setText("No pothole");
                     }
 
                     if (isUserAtDestination(newLatLng, destination)) {
-                        fusedLocationClient.removeLocationUpdates(this); // Dừng theo dõi vị trí
+                        fusedLocationClient.removeLocationUpdates(this);
+                        isRouteDrawn = false;
                         Toast.makeText(requireContext(), "You have arrived at your destination!", Toast.LENGTH_SHORT).show();
                     }
                     if(!isRouteDrawn)
@@ -1193,6 +1201,8 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                     isRouteDrawn = true;
 
                     addMarkersOnRoute(routePoints);
+                    stopButton.setVisibility(View.VISIBLE);
+                    note.setVisibility(View.VISIBLE);
                 } else {
                     Toast.makeText(getActivity(), "Không thể lấy thông tin đường đi: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
@@ -1229,6 +1239,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                     Marker marker = mMap.addMarker(markerOptions);
 
                     if (marker != null) {
+                        marker.setTag(pothole);
                         markers.add(marker);
                     }
                 }

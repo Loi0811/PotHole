@@ -1,9 +1,12 @@
 package com.example.pothole;
 
+import com.google.gson.annotations.SerializedName;
+
 public class ApiResponse {
     private boolean status;
     private String success;
     private String token;
+    private User data;
 
     // Getters and Setters
 
@@ -25,5 +28,13 @@ public class ApiResponse {
 
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
+
+    public User getData() {
+        return data;
+    }
+
+    public void setData(User data) {
+        this.data = data;
+    }
 }
 

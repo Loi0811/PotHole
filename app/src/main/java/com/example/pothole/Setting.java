@@ -13,11 +13,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+
 public class Setting extends Fragment {
 
     public Setting() {
         // Required empty public constructor
     }
+    private LinearLayout logout;
+    private GoogleSignInOptions gso;
+    private GoogleSignInClient gsc;
 
     @Nullable
     @Override
@@ -26,19 +36,27 @@ public class Setting extends Fragment {
         // Inflate the fragment layout
         View view = inflater.inflate(R.layout.fragment_setting, container, false);
 
-        // Setup logout item
-        setupItem(view, R.id.logOutItem, MainActivity.class);
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
+        gsc = GoogleSignIn.getClient(requireActivity(),gso);
+
+        logout = view.findViewById(R.id.logOutItem);
+        logout.setOnClickListener(v -> {
+            signOut();
+        });
 
 
         return view;
     }
 
-    private void setupItem(View view, int itemId, Class<?> activityClass) {
-        LinearLayout item = view.findViewById(itemId);
-        item.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), activityClass);
-            if (itemId == R.id.logOutItem) intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
+    void signOut(){
+        gsc.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(Task<Void> task) {
+                Intent intent = new Intent(getActivity(), MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
         });
     }
+
 }

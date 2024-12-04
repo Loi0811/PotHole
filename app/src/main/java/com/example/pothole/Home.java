@@ -2,6 +2,7 @@ package com.example.pothole;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -12,6 +13,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -59,6 +61,8 @@ public class Home extends AppCompatActivity {
     private UserApiService apiService;
     private FusedLocationProviderClient fusedLocationClient;
     private List<PotholeClass> potholes = new ArrayList<>();
+    private String useremail;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +71,10 @@ public class Home extends AppCompatActivity {
         apiService = ApiClient.getClient(isEmulator()).create(UserApiService.class);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         getLastLocation();
-        fetchPotholesByAuthor("author@gm.com");
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        useremail = sharedPreferences.getString("Email", null);
+        fetchPotholesByAuthor(useremail);
+        fetchUserByEmail(useremail);
 
         ImageView addReport = findViewById(R.id.add_report);
         dashboardFragment = new Dashboard();
@@ -144,7 +151,6 @@ public class Home extends AppCompatActivity {
                     return;
                 }
 
-                String userEmail = "author@gm.com";
                 AddressPothole addressPothole = new AddressPothole();
                 addressPothole.setStreetName(streetTextView.getText().toString());
                 addressPothole.setDistrict(districtTextView.getText().toString());
@@ -156,7 +162,7 @@ public class Home extends AppCompatActivity {
                 pothole.setLatitude(latitude);
                 pothole.setLongitude(longitude);
                 pothole.setDate(getCurrentDateTime());
-                pothole.setAuthor(userEmail);
+                pothole.setAuthor(useremail);
                 pothole.setAddressPothole(addressPothole);
 
                 AddressPotholeClass addressPotholeClass = new AddressPotholeClass();
@@ -169,7 +175,7 @@ public class Home extends AppCompatActivity {
                 newPothole.setLatitude(latitude);
                 newPothole.setLongitude(longitude);
                 newPothole.setDate(getCurrentDateTime());
-                newPothole.setAuthor(userEmail);
+                newPothole.setAuthor(useremail);
                 newPothole.setAddressPothole(addressPotholeClass);
 
 
@@ -222,6 +228,7 @@ public class Home extends AppCompatActivity {
             Window window = dialog.getWindow();
             if (window != null) {
                 window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                window.setGravity(Gravity.CENTER);
                 window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Xóa nền mặc định
             }
         });
@@ -288,7 +295,6 @@ public class Home extends AppCompatActivity {
     }
     private String getCurrentDateTime() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.getDefault());
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(new Date());
     }
     public static boolean isEmulator() {
@@ -374,7 +380,38 @@ public class Home extends AppCompatActivity {
         });
     }
 
+    public void fetchUserByEmail(String email) {
+        Call<ApiResponse> call = apiService.getUserByEmail(email);
+        call.enqueue(new Callback<ApiResponse>() {
+            @Override
+            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+                if (response.isSuccessful() && response.body().isStatus()) {
+                    user = response.body().getData();
+                    if (user != null) {
+                        String name = user.getName();
+                        Log.d("User Name", name);
+                    } else {
+                        Log.e("Error", "User is null");
+                    }
+                } else {
+                    Log.e("Error", response.body() != null ? response.body().getMessage() : "Unknown error");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse> call, Throwable t) {
+                Log.e("API Error", t.getMessage());
+            }
+        });
+    }
+
     public List<PotholeClass> getPotholeList() {
         return potholes;
+    }
+    public String getUseremail() {
+        return useremail;
+    }
+    public User getUser(){
+        return user;
     }
 }

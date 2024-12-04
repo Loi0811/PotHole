@@ -25,6 +25,12 @@ public interface UserApiService {
     @PUT("update-password")
     Call<ApiResponse> updatePassword(@Body PasswordUpdateRequest request);
 
+    @GET("search-user")
+    Call<ApiResponse> searchUser(@Query("email") String email);
+
+    @GET("email/{email}")
+    Call<ApiResponse> getUserByEmail(@Path("email") String email);
+
     @POST("add-pothole")
     Call<ApiResponse> addPothole(@Body Pothole pothole);
 

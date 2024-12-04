@@ -32,6 +32,7 @@ public class Information extends AppCompatActivity {
     private EditText etPhone, etDistrict, etProvince;
     private ImageView backIcon;
     private UserApiService apiService;
+    private Boolean google;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,7 @@ public class Information extends AppCompatActivity {
 
         String email = getIntent().getStringExtra("sendemail");
         String name = getIntent().getStringExtra("sendname");
+        google = getIntent().getBooleanExtra("google",false);
 
         tvBirthday.setOnClickListener(v -> showDatePickerDialog());
         btnContinue.setOnClickListener(new View.OnClickListener() {
@@ -130,7 +132,11 @@ public class Information extends AppCompatActivity {
                     ApiResponse apiResponse = response.body();
                     if (apiResponse.isStatus()) {
                         Toast.makeText(Information.this, "User updated successfully", Toast.LENGTH_SHORT).show();
-                        showDoneSignup(btnContinue);
+                        if (google){
+                            startActivity(new Intent(Information.this, Home.class));
+                        } else {
+                            showDoneSignup(btnContinue);
+                        }
                     } else {
                         Toast.makeText(Information.this, apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
                     }

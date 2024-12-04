@@ -168,6 +168,7 @@ public class SignUp extends AppCompatActivity {
                         Intent intent = new Intent(SignUp.this, Information.class);
                         intent.putExtra("sendemail", useremail);
                         intent.putExtra("sendname", username);
+                        intent.putExtra("google",false);
                         startActivity(intent);
                     } else {
                         Toast.makeText(SignUp.this, "Registration failed", Toast.LENGTH_SHORT).show();

@@ -36,9 +36,13 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ViewModelProvider;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,7 +55,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class Home extends AppCompatActivity {
+public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.UserSetting {
     private Fragment currentFragment;
     private Fragment dashboardFragment;
     private Fragment mapFragment;
@@ -74,7 +78,7 @@ public class Home extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
         useremail = sharedPreferences.getString("Email", null);
         fetchPotholesByAuthor(useremail);
-        fetchUserByEmail(useremail);
+//        fetchUserByEmail(useremail);
 
         ImageView addReport = findViewById(R.id.add_report);
         dashboardFragment = new Dashboard();
@@ -193,6 +197,11 @@ public class Home extends AppCompatActivity {
                                     ((OnPotholeAddedListener) mapFragment).onPotholeAdded(newPothole);
                                 }
                                 potholes.add(newPothole);
+                                Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
+                                if (dashboard != null){
+                                    dashboard.ChartAfterAdd(newPothole);
+                                }
+
 
                                 // Thêm ổ gà thành công
                                 Toast.makeText(Home.this, "Pothole added successfully!", Toast.LENGTH_SHORT).show();
@@ -241,7 +250,7 @@ public class Home extends AppCompatActivity {
         if (savedInstanceState == null) {
             currentFragment = dashboardFragment;
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container, dashboardFragment)
+                    .add(R.id.fragment_container, dashboardFragment, "DashboardFragment")
                     .commit();
         }
 
@@ -253,46 +262,65 @@ public class Home extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment selectedFragment = null;
 
+                String tag = null;
+
                 if (item.getItemId() == R.id.btn_dashboard) {
                     selectedFragment = dashboardFragment;
+                    tag = "DashboardFragment";
+                    Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
+                    if (dashboard != null) {
+                        user = dashboard.getUser();
+                    }
                 } else if (item.getItemId() == R.id.btn_map) {
                     selectedFragment = mapFragment;
+                    tag = "MapFragment";
                 } else if (item.getItemId() == R.id.btn_history) {
                     selectedFragment = historyFragment;
+                    tag = "HistoryFragment";
                 } else if (item.getItemId() == R.id.btn_setting) {
                     selectedFragment = settingFragment;
+                    tag = "SettingFragment";
+                    Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
+                    if (dashboard != null) {
+                        user = dashboard.getUser();
+                    }
                 }
 
-                return switchFragment(selectedFragment);
+                return switchFragment(selectedFragment, tag);
             }
         });
+
+
     }
 
-    private boolean switchFragment(Fragment selectedFragment) {
+    private boolean switchFragment(Fragment selectedFragment, String tag) {
         if (selectedFragment != null && selectedFragment != currentFragment) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-            // Hide the current fragment if it exists
+            // Hide the current fragment
             if (currentFragment != null) {
                 transaction.hide(currentFragment);
             }
 
-            // Show the selected fragment, or add it if not already added
-            if (!selectedFragment.isAdded()) {
-                transaction.add(R.id.fragment_container, selectedFragment);
+            // Check if the selected fragment is already added
+            Fragment fragmentByTag = getSupportFragmentManager().findFragmentByTag(tag);
+            if (fragmentByTag == null) {
+                transaction.add(R.id.fragment_container, selectedFragment, tag);
             } else {
-                transaction.show(selectedFragment);
+                transaction.show(fragmentByTag);
             }
 
             // Commit the transaction
             transaction.commit();
 
-            // Update current fragment to the new one
+            // Update current fragment
             currentFragment = selectedFragment;
             return true;
         }
         return false;
     }
+
+
     private String getCurrentDateTime() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.getDefault());
         return sdf.format(new Date());
@@ -380,7 +408,7 @@ public class Home extends AppCompatActivity {
         });
     }
 
-    public void fetchUserByEmail(String email) {
+    private void fetchUserByEmail(String email) {
         Call<ApiResponse> call = apiService.getUserByEmail(email);
         call.enqueue(new Callback<ApiResponse>() {
             @Override
@@ -388,8 +416,8 @@ public class Home extends AppCompatActivity {
                 if (response.isSuccessful() && response.body().isStatus()) {
                     user = response.body().getData();
                     if (user != null) {
-                        String name = user.getName();
-                        Log.d("User Name", name);
+                        Log.d("User Name", user.getName());
+                        Toast.makeText(Home.this, user.getName(), Toast.LENGTH_SHORT).show();
                     } else {
                         Log.e("Error", "User is null");
                     }
@@ -413,5 +441,38 @@ public class Home extends AppCompatActivity {
     }
     public User getUser(){
         return user;
+    }
+
+    @Override
+    public void DataChartAfterAdd (PotholeClass potholeClass){
+        Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
+        if (dashboard != null){
+            Log.d("HOME","Give data");
+            dashboard.ChartAfterAdd(potholeClass);
+        }
+    }
+
+    @Override
+    public void DataChartAfterUpdate (Integer old_type, Integer new_type){
+        Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
+        if (dashboard != null){
+            dashboard.ChartAfterUpdate(old_type,new_type);
+        }
+    }
+
+    @Override
+    public void DataChartAfterDelete (Integer type, String date){
+        Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
+        if (dashboard != null){
+            dashboard.ChartAfterDelete(type,date);
+        }
+    }
+
+    @Override
+    public void SetUser (User user){
+        Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
+        if (dashboard != null){
+            dashboard.ChangeUser(user);
+        }
     }
 }

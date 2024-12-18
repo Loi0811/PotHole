@@ -106,36 +106,88 @@
                     android:layout_margin="5dp"
                     android:orientation="horizontal"
                     android:id="@+id/dashboard0">
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/days"
                         android:layout_margin="5dp"
                         android:background="@drawable/chart"
                         android:elevation="15dp"
                         android:layout_gravity="center_vertical"
                         android:gravity="center_horizontal"
-                        android:textColor="@color/dark_gray"
-                        android:text="DAYS\n 99"
-                        android:textSize="20dp"
-                        android:textStyle="bold"
                         android:layout_weight="1"
-                        android:padding="5dp"/>
-                    <TextView
+                        android:padding="5dp"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:gravity="center_horizontal"
+                            android:textColor="@color/dark_gray"
+                            android:text="DAYS"
+                            android:textSize="20dp"
+                            android:textStyle="bold"
+                            android:layout_weight="1"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:scrollHorizontally="true"
+                            android:singleLine="true"/>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/days"
+                            android:layout_gravity="center_vertical"
+                            android:gravity="center_horizontal"
+                            android:textColor="@color/dark_gray"
+                            android:text="99"
+                            android:textSize="20dp"
+                            android:textStyle="bold"
+                            android:layout_weight="1"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:scrollHorizontally="true"
+                            android:singleLine="true"/>
+                    </LinearLayout>
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/distances"
                         android:layout_margin="5dp"
                         android:background="@drawable/chart"
                         android:elevation="15dp"
                         android:layout_gravity="center_vertical"
                         android:gravity="center_horizontal"
-                        android:textColor="@color/dark_gray"
-                        android:text="DISTANCES \n 99"
-                        android:textSize="20dp"
-                        android:textStyle="bold"
                         android:layout_weight="1"
-                        android:padding="5dp"/>
+                        android:padding="5dp"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:gravity="center_horizontal"
+                            android:textColor="@color/dark_gray"
+                            android:text="DISTANCES"
+                            android:textSize="20dp"
+                            android:textStyle="bold"
+                            android:layout_weight="1"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:scrollHorizontally="true"
+                            android:singleLine="true"/>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/distances"
+                            android:layout_gravity="center_vertical"
+                            android:gravity="center_horizontal"
+                            android:textColor="@color/dark_gray"
+                            android:text="99"
+                            android:textSize="20dp"
+                            android:textStyle="bold"
+                            android:layout_weight="1"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:scrollHorizontally="true"
+                            android:singleLine="true"/>
+                    </LinearLayout>
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"

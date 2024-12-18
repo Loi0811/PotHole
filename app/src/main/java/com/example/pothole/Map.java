@@ -119,6 +119,17 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private LinearLayout note;
     private TextView des, near_pothole;
     private String userEmail;
+    private UpdateChart listener;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof UpdateChart) {
+            listener = (UpdateChart) context; // Gắn kết Activity với Interface
+        } else {
+            throw new RuntimeException(context.toString() + " must implement Update");
+        }
+    }
 
 
     private SensorEventListener sensorEventListener = new SensorEventListener() {
@@ -462,7 +473,11 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                         ApiResponse apiResponse = response.body();
                         if (apiResponse.isStatus()) {
                             potholes.add(newPothole);
-                            String snippet = newPothole.getAddressPothole().getDistrict() + "," + newPothole.getAddressPothole().getProvince()
+                            if (listener != null) {
+                                Log.d("MAP","Send_data");
+                                listener.DataChartAfterAdd(newPothole);
+                            }
+                             String snippet = newPothole.getAddressPothole().getDistrict() + "," + newPothole.getAddressPothole().getProvince()
                                     + "\n" + newPothole.getDate() + "\n" +
                                     "Type:" + getDangerLevel(newPothole.getType());
 
@@ -605,6 +620,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             if (pothole != null) {
                 String selectedType = typeSpinner.getSelectedItem().toString();
                 int type = 0;
+                int old_type = pothole.getType();
 
                 if ("Caution".equals(selectedType)) type = 1;
                 else if ("Warning".equals(selectedType)) type = 2;
@@ -614,7 +630,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 pothole.getAddressPothole().setProvince(province.getText().toString());
                 pothole.setType(type);
 
-                updatePothole(pothole);
+                updatePothole(pothole,old_type,type);
 
                 for (int i = 0; i < potholes.size(); i++) {
                     PotholeClass currentPothole = potholes.get(i);
@@ -642,7 +658,10 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 Double lat = marker.getPosition().latitude;
                 Double lon = marker.getPosition().longitude;
                 String author = pothole.getAuthor();
-                deletePothole(lat,lon,author);
+                Integer type_remove = pothole.getType();
+                String date_remove = pothole.getDate();
+
+                deletePothole(lat,lon,author,type_remove, date_remove);
 
                 for (int i = 0; i < potholes.size(); i++) {
                     PotholeClass currentPothole = potholes.get(i);
@@ -876,6 +895,10 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                     addPothole(pothole);
 
                     potholes.add(potholeClass);
+
+                    if (listener != null){
+                        listener.DataChartAfterAdd(potholeClass);
+                    }
 
                     LatLng location = new LatLng(latitude, longitude);
 
@@ -1310,7 +1333,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         });
     }
 
-    private void updatePothole(PotholeClass pothole) {
+    private void updatePothole(PotholeClass pothole, Integer old_type, Integer new_type) {
 
         // Call Retrofit API to update pothole
         Call<PotholeResponse> call = apiService.updatePothole(pothole);
@@ -1319,6 +1342,9 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             public void onResponse(Call<PotholeResponse> call, Response<PotholeResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(getActivity(), "Update successful", Toast.LENGTH_SHORT).show();
+                    if (listener != null){
+                        listener.DataChartAfterUpdate(old_type,new_type);
+                    }
                 } else {
                     Toast.makeText(getActivity(), "Update failed", Toast.LENGTH_SHORT).show();
                 }
@@ -1331,7 +1357,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         });
     }
 
-    private void deletePothole(Double lat, Double lon, String author) {
+    private void deletePothole(Double lat, Double lon, String author, Integer type, String date) {
 
         Call<PotholeResponse> call = apiService.deletePothole(lat, lon, author);
         call.enqueue(new Callback<PotholeResponse>() {
@@ -1339,6 +1365,9 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             public void onResponse(Call<PotholeResponse> call, Response<PotholeResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(getActivity(), "Delete successful", Toast.LENGTH_SHORT).show();
+                    if (listener != null){
+                        listener.DataChartAfterDelete(type,date);
+                    }
                 } else {
                     Toast.makeText(getActivity(), "Delete failed", Toast.LENGTH_SHORT).show();
                 }
@@ -1384,5 +1413,17 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 Build.MANUFACTURER.contains("Genymotion") ||
                 (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic")) ||
                 "google_sdk".equals(Build.PRODUCT);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        listener = null; // Hủy liên kết khi Fragment bị tháo
+    }
+
+    public interface UpdateChart {
+        void DataChartAfterAdd(PotholeClass potholeClass);
+        void DataChartAfterUpdate(Integer old_type, Integer new_type);
+        void DataChartAfterDelete(Integer type, String Date);
     }
 }

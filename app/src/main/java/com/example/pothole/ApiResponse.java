@@ -6,6 +6,8 @@ public class ApiResponse {
     private boolean status;
     private String success;
     private String token;
+
+    @SerializedName("data")
     private User data;
 
     // Getters and Setters

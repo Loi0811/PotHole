@@ -8,7 +8,7 @@ public class User {
     private AddressUser address;
     private String birthday;
     private String gender;
-    private String cteate;
+    private String create;
 
     // Getters and Setters
 
@@ -68,12 +68,12 @@ public class User {
         this.email = email;
     }
 
-    public String getCteate() {
-        return cteate;
+    public String getCreate() {
+        return create;
     }
 
-    public void setCteate(String cteate) {
-        this.cteate = cteate;
+    public void setCreate(String create) {
+        this.create = create;
     }
 }
 

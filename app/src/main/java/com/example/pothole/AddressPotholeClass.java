@@ -1,8 +1,11 @@
 package com.example.pothole;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
-public class AddressPotholeClass {
+public class AddressPotholeClass{
 
     @SerializedName("streetName")
     private String streetName;
@@ -13,6 +16,12 @@ public class AddressPotholeClass {
     @SerializedName("province")
     private String province;
 
+    // Constructor mặc định
+    public AddressPotholeClass() {}
+
+    // Constructor Parcelable
+
+    // Getter và Setter
     public String getStreetName() {
         return streetName;
     }

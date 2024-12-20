@@ -3,6 +3,7 @@ package com.example.pothole;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
@@ -20,10 +21,13 @@ import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -92,7 +96,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private Sensor gyroscope;
-    private float lastZ = 0.0f;  // Dùng để theo dõi sự thay đổi chiều cao (trục Z)
+    private float lastAcceleration = 0.0f;  // Dùng để theo dõi sự thay đổi chiều cao (trục Z)
     private static final float THRESHOLD = 10.0f;  // Ngưỡng chiều cao thay đổi 10 cm
     private static final float GYRO_THRESHOLD = 1.0f;  // Ngưỡng thay đổi góc con quay hồi chuyển
     private boolean isDialogShowing = false;
@@ -120,6 +124,8 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private TextView des, near_pothole;
     private String userEmail;
     private UpdateChart listener;
+    private boolean isAlerting = false;
+
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -135,38 +141,47 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private SensorEventListener sensorEventListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
+            if (!isSensorActive()) {
+                return;
+            }
+
             if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                // Lấy giá trị gia tốc trên trục Z (chiều cao)
+                // Lấy giá trị gia tốc trên các trục
                 float x = event.values[0];
                 float y = event.values[1];
                 float z = event.values[2];
 
-                // Kiểm tra sự thay đổi chichi cao (10 cm)
-                if (Math.abs(z - lastZ) > THRESHOLD) {
-                    // Nếu có sự thay đổi chiều cao lớn hơn 10cm
-                    showAddPotholeDialog(x, y, z);  // Gọi dialog để thêm ổ gà
+                // Tính tổng hợp gia tốc: sqrt(x^2 + y^2 + z^2)
+                float acceleration = (float) Math.sqrt(x * x + y * y + z * z);
+
+                // Kiểm tra nếu gia tốc vượt ngưỡng
+                if (Math.abs(acceleration - lastAcceleration) > THRESHOLD) {
+
+                    addPotholeAlert(Math.abs(acceleration - lastAcceleration));
                 }
-                lastZ = z;
+                lastAcceleration = acceleration;
 
             } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
                 // Lấy dữ liệu từ cảm biến con quay hồi chuyển
-                float deltaX = event.values[0];  // Tốc độ quay trên trục X
-                float deltaY = event.values[1];  // Tốc độ quay trên trục Y
-                float deltaZ = event.values[2];  // Tốc độ quay trên trục Z
+                float deltaX = event.values[0]; // Tốc độ quay trên trục X
+                float deltaY = event.values[1]; // Tốc độ quay trên trục Y
+                float deltaZ = event.values[2]; // Tốc độ quay trên trục Z
 
-                // Kiểm tra sự thay đổi góc (quay) vượt ngưỡng
-                if (Math.abs(deltaX) > GYRO_THRESHOLD || Math.abs(deltaY) > GYRO_THRESHOLD || Math.abs(deltaZ) > GYRO_THRESHOLD) {
+                // Tính tổng hợp tốc độ quay: sqrt(deltaX^2 + deltaY^2 + deltaZ^2)
+                float angularVelocity = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+
+                // Kiểm tra nếu tốc độ quay vượt ngưỡng
+                if (angularVelocity > GYRO_THRESHOLD) {
                     // Nếu có sự thay đổi góc lớn hơn ngưỡng
-                    showAddPotholeDialog(deltaX, deltaY, deltaZ);  // Gọi dialog để thêm ổ gà
+                    showAddPotholeDialog(deltaX, deltaY, deltaZ); // Gọi dialog để thêm ổ gà
                 }
             }
         }
 
         @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {}
-
-
     };
+
 
     @Nullable
     @Override
@@ -361,6 +376,111 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         // Hiển thị hộp thoại
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    private void addPotholeAlert(float acceleration) {
+        Dialog dialog = new Dialog(requireActivity());
+        dialog.setContentView(R.layout.detect_pothole);
+
+        if (isDialogShowing) {
+            return;
+        }
+
+        isDialogShowing = true;
+
+        TextView level = dialog.findViewById(R.id.level);
+        Button yes = dialog.findViewById(R.id.yes);
+        Button no = dialog.findViewById(R.id.no);
+        int type;
+
+        if (acceleration > 17.0) {  // Gia tốc thay đổi trên 3 m/s²
+            level.setText("Danger");
+            level.setTextColor(getResources().getColor(R.color.risk_red));
+            type = 3;
+        } else if (acceleration > 15.0) {  // Gia tốc thay đổi từ 1.5 đến 3 m/s²
+            level.setText("Warning");
+            type = 2;
+            level.setTextColor(getResources().getColor(R.color.risk_orange));
+        } else {
+            type = 1;
+            if (acceleration > 10.0) {
+                level.setText("Caution");
+                level.setTextColor(getResources().getColor(R.color.risk_yellow));
+            }
+        }
+
+        yes.setOnClickListener(v->{
+            getLastLocation();
+            getAddressFromLocation(latitude, longitude);
+            AddressPothole addressPothole = new AddressPothole();
+            AddressPotholeClass addressPotholeClass = new AddressPotholeClass();
+            addressPothole.setStreetName(streetName);
+            addressPothole.setDistrict(district);
+            addressPothole.setProvince(province);
+
+            addressPotholeClass.setStreetName(streetName);
+            addressPotholeClass.setDistrict(district);
+            addressPotholeClass.setProvince(province);
+
+            Pothole pothole = new Pothole();
+            PotholeClass potholeClass = new PotholeClass();
+            pothole.setAddressPothole(addressPothole);
+            pothole.setLatitude(latitude);
+            pothole.setLongitude(longitude);
+            pothole.setDate(getCurrentTime());
+            pothole.setType(type);
+            pothole.setAuthor(userEmail);
+
+            potholeClass.setAddressPothole(addressPotholeClass);
+            potholeClass.setLatitude(latitude);
+            potholeClass.setLongitude(longitude);
+            potholeClass.setDate(getCurrentTime());
+            potholeClass.setType(type);
+            potholeClass.setAuthor(userEmail);
+
+            addPothole(pothole);
+
+            potholes.add(potholeClass);
+
+            if (listener != null){
+                listener.DataChartAfterAdd(potholeClass);
+            }
+
+            LatLng location = new LatLng(latitude, longitude);
+
+            String snippet = pothole.getAddressPothole().getDistrict() + "," + pothole.getAddressPothole().getProvince()
+                    + "\n" + pothole.getDate() + "\n" +
+                    "Type:" + getDangerLevel(pothole.getType());
+
+            // Tạo marker và thêm vào bản đồ
+            MarkerOptions markerOptions = new MarkerOptions()
+                    .position(location)
+                    .title("Pothole: " + pothole.getAddressPothole().getStreetName())
+                    .snippet(snippet)
+                    .icon(getMarkerColor(pothole.getType()));
+
+            Marker marker = mMap.addMarker(markerOptions);
+
+            if (marker != null) {
+                marker.setTag(pothole);
+                markers.add(marker);
+            }
+            dialog.dismiss();
+            isDialogShowing = false;
+        });
+
+        no.setOnClickListener(v->{
+            dialog.dismiss();
+            isDialogShowing = false;
+        });
+
+        dialog.show();
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.CENTER);
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Xóa nền mặc định
+        }
     }
 
     private void addPotholeHuman(LatLng latLng){
@@ -763,7 +883,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
 
     public String getCurrentTime() {
         // Tạo đối tượng SimpleDateFormat với định dạng mong muốn
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
         // Lấy thời gian hiện tại
         Date date = new Date();
@@ -1061,19 +1181,38 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                             String data = "Nearest pothole: " + value + "m";
                             near_pothole.setText(data);
 
+                            if (distanceToNearest <= 30) {
+                                near_pothole.setTextColor(getResources().getColor(R.color.risk_red));
+
+                                animateTextViewShake(near_pothole);
+                            } else {
+                                near_pothole.setTextColor(getResources().getColor(R.color.dark_gray));
+                            }
+
+                            if (distanceToNearest <= 30 && !isAlerting) {
+                                isAlerting = true;
+                                if (isSoundEnabled()) playSound();
+                                if (isVibrationEnabled()) vibratePhone();
+
+                                new Handler(Looper.getMainLooper()).postDelayed(() -> isAlerting = false, 1500);
+                            }
 
                             if (distanceToNearest <= 10) {
                                 markers.removeIf(marker -> {
                                     if (marker.getTag() == nearestPothole) {
-                                        marker.remove(); // Xóa marker khỏi bản đồ
-                                        return true; // Xóa khỏi danh sách markers
+                                        marker.remove();
+                                        return true;
                                     }
                                     return false;
                                 });
                                 Toast.makeText(requireContext(), "Pothole passed!", Toast.LENGTH_SHORT).show();
+                                isAlerting = false;
+                                near_pothole.setTextColor(getResources().getColor(R.color.dark_gray));
                             }
                         } else {
                             near_pothole.setText("No pothole");
+                            isAlerting = false;
+                            near_pothole.setTextColor(getResources().getColor(R.color.dark_gray));
                         }
                     }
 
@@ -1081,6 +1220,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                         fusedLocationClient.removeLocationUpdates(this);
                         isRouteDrawn = false;
                         Toast.makeText(requireContext(), "You have arrived at your destination!", Toast.LENGTH_SHORT).show();
+                        cancelRoute();
                     }
                     if(!isRouteDrawn)
                     {
@@ -1114,6 +1254,53 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             }
         }
         return nearestPothole;
+    }
+
+    private void playSound() {
+        MediaPlayer mediaPlayer = MediaPlayer.create(requireContext(), R.raw.alert_sound);
+        mediaPlayer.start();
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+            }
+        }, 1500);
+    }
+
+
+    private void vibratePhone() {
+        Vibrator vibrator = (Vibrator) requireContext().getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null && vibrator.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(1500, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+                vibrator.vibrate(1500);
+            }
+        }
+    }
+
+    private void animateTextViewShake(TextView textView) {
+        ObjectAnimator animator = ObjectAnimator.ofFloat(textView, "translationX", 0, 10, -10, 10, -10, 5, -5, 0);
+        animator.setDuration(500); // Thời gian lắc 500ms
+        animator.start();
+    }
+
+
+
+    private boolean isSoundEnabled() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        return prefs.getBoolean("sound", true);
+    }
+
+    private boolean isVibrationEnabled() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        return prefs.getBoolean("vibration", true);
+    }
+
+    private boolean isSensorActive() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        return prefs.getBoolean("sensor", true);
     }
 
     private BitmapDescriptor BitmapFromVector(Context context, int vectorResId) {
@@ -1271,21 +1458,64 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     }
 
     private boolean isNearRoute(LatLng potholeLocation, List<LatLng> routePoints) {
-        for (LatLng routePoint : routePoints) {
-            float[] results = new float[1];
-            Location.distanceBetween(
-                    potholeLocation.latitude, potholeLocation.longitude,
-                    routePoint.latitude, routePoint.longitude,
-                    results
-            );
+        if (routePoints == null || routePoints.size() < 2) {
+            return false;
+        }
 
-            // Kiểm tra khoảng cách (ví dụ: <= 50m)
-            if (results[0] <= 50) {
+
+        for (int i = 0; i < routePoints.size() - 1; i++) {
+            LatLng start = routePoints.get(i);
+            LatLng end = routePoints.get(i + 1);
+
+            // Tính khoảng cách từ pothole đến đoạn thẳng giữa start và end
+            double distance = distanceToSegment(potholeLocation, start, end);
+            if (distance <= 5) {
                 return true;
             }
         }
+
         return false;
     }
+
+
+    private double distanceToSegment(LatLng point, LatLng start, LatLng end) {
+        double px = point.latitude;
+        double py = point.longitude;
+        double sx = start.latitude;
+        double sy = start.longitude;
+        double ex = end.latitude;
+        double ey = end.longitude;
+
+        double dx = ex - sx;
+        double dy = ey - sy;
+
+        if (dx == 0 && dy == 0) {
+            // Start và End trùng nhau, tính khoảng cách từ point đến start
+            return distanceBetween(point, start);
+        }
+
+        // Tính t (tỉ lệ giữa đoạn thẳng và đoạn vuông góc)
+        double t = ((px - sx) * dx + (py - sy) * dy) / (dx * dx + dy * dy);
+        t = Math.max(0, Math.min(1, t)); // Giới hạn t trong [0, 1]
+
+        // Tính tọa độ điểm gần nhất trên đoạn thẳng
+        double nearestX = sx + t * dx;
+        double nearestY = sy + t * dy;
+
+        // Tính khoảng cách từ point đến điểm gần nhất trên đoạn thẳng
+        return distanceBetween(point, new LatLng(nearestX, nearestY));
+    }
+
+    private double distanceBetween(LatLng point1, LatLng point2) {
+        float[] results = new float[1];
+        Location.distanceBetween(
+                point1.latitude, point1.longitude,
+                point2.latitude, point2.longitude,
+                results
+        );
+        return results[0];
+    }
+
 
 
     private void clearMarker(Marker destinationMarker) {

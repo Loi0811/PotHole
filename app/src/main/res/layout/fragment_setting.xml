@@ -139,7 +139,7 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/securityItem"
+                        android:id="@+id/changePasswordItem"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -149,12 +149,12 @@
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:padding="5dp"
-                            android:src="@drawable/ic_security"
+                            android:src="@drawable/ic_key"
                             android:layout_marginRight="10dp"/>
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="Security"
+                            android:text="Change Password"
                             android:textSize="24dp"
                             android:textColor="@color/dark_gray"
                             android:layout_weight="1"/>

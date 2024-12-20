@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/light_gray">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+            <ImageView
+                android:id="@+id/back"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentLeft="true"
+                android:padding="5dp"
+                android:src="@drawable/ic_back_foreground"
+                android:background="@drawable/button_circle"
+                android:layout_marginTop="10dp"
+                android:layout_centerVertical="true"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:text="Q &amp; A"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:textSize="30dp"
+                android:textStyle="bold"
+                android:textColor="@color/dark_gray"/>
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/question1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="What is Pothole Detection?"
+            android:textSize="18sp"
+            android:textColor="@color/light_gray"
+            android:padding="10dp"
+            android:background="@drawable/question0"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <LinearLayout
+            android:id="@+id/answer1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="10dp"
+            android:background="@drawable/answer">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pothole detection refers to identifying and marking potholes or road damage for the safety of road users."
+                android:textSize="16sp"
+                android:textColor="@color/dark_gray" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/question2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="How does the app detect potholes?"
+            android:textSize="18sp"
+            android:textColor="@color/light_gray"
+            android:padding="10dp"
+            android:background="@drawable/question0"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <LinearLayout
+            android:id="@+id/answer2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="10dp"
+            android:background="@drawable/answer">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="The app uses sensors and user-reported data to detect potholes by analyzing road conditions."
+                android:textSize="16sp"
+                android:textColor="@color/dark_gray" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/question3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Is the app free to use?"
+            android:textSize="18sp"
+            android:textColor="@color/light_gray"
+            android:padding="10dp"
+            android:background="@drawable/question0"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <LinearLayout
+            android:id="@+id/answer3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="10dp"
+            android:background="@drawable/answer">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Yes, the app is free to download and use."
+                android:textSize="16sp"
+                android:textColor="@color/dark_gray" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/question4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Can I report potholes in my area?"
+            android:textSize="18sp"
+            android:textColor="@color/light_gray"
+            android:padding="10dp"
+            android:background="@drawable/question0"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <LinearLayout
+            android:id="@+id/answer4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="10dp"
+            android:background="@drawable/answer">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Yes, you can easily report potholes using the app's built-in reporting feature."
+                android:textSize="16sp"
+                android:textColor="@color/dark_gray" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/question5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="How accurate is the pothole detection?"
+            android:textSize="18sp"
+            android:textColor="@color/light_gray"
+            android:padding="10dp"
+            android:background="@drawable/question0"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <LinearLayout
+            android:id="@+id/answer5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="10dp"
+            android:background="@drawable/answer">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="The detection accuracy depends on sensor quality and environmental conditions, but the app continually improves with user input."
+                android:textSize="16sp"
+                android:textColor="@color/dark_gray" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

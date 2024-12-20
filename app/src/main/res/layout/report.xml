@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/light_gray">
+    <RelativeLayout
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp">
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentLeft="true"
+            android:padding="5dp"
+            android:src="@drawable/ic_back_foreground"
+            android:background="@drawable/button_circle"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_centerVertical="true"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="REPORT PROBLEM"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:textSize="30dp"
+            android:textStyle="bold"
+            android:textColor="@color/dark_gray"/>
+    </RelativeLayout>
+    <TextView
+        android:id="@+id/head"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter your report: "
+        android:textSize="24dp"
+        android:textStyle="bold"
+        android:textColor="@color/dark_gray"
+        android:layout_marginStart="15dp"
+        android:layout_below="@id/title"/>
+
+    <EditText
+        android:layout_marginTop="10dp"
+        android:id="@+id/report"
+        android:layout_below="@id/head"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="15dp"
+        android:background="@drawable/edittext"
+        android:hint="Report"
+        android:padding="10dp"
+        android:textSize="20dp"
+        android:textColor="@color/dark_gray"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:scrollHorizontally="true"
+        android:singleLine="true"/>
+
+
+    <Button
+        android:id="@+id/send"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:text="SEND"
+        android:textSize="20dp"
+        android:background="@drawable/button"
+        android:textColor="@color/light_gray"
+        android:padding="5dp"
+        android:layout_below="@id/report"
+        android:layout_alignParentEnd="true"/>
+
+</RelativeLayout>

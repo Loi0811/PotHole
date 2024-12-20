@@ -67,6 +67,7 @@ public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.
     private List<PotholeClass> potholes = new ArrayList<>();
     private String useremail;
     private User user;
+    private String password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +78,8 @@ public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.
         getLastLocation();
         SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
         useremail = sharedPreferences.getString("Email", null);
+        password = sharedPreferences.getString("Password", null);
+
         fetchPotholesByAuthor(useremail);
 //        fetchUserByEmail(useremail);
 
@@ -322,7 +325,7 @@ public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.
 
 
     private String getCurrentDateTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
         return sdf.format(new Date());
     }
     public static boolean isEmulator() {
@@ -395,7 +398,6 @@ public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.
                 if (response.isSuccessful() && response.body() != null) {
                     PotholeResponse potholeResponse = response.body();
                     potholes = potholeResponse.getPotholes();
-                    Toast.makeText(Home.this, "OK", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(Home.this, "Failed to load potholes", Toast.LENGTH_SHORT).show();
                 }
@@ -438,6 +440,9 @@ public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.
     }
     public String getUseremail() {
         return useremail;
+    }
+    public String getUserPassword() {
+        return password;
     }
     public User getUser(){
         return user;

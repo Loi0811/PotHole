@@ -27,6 +27,10 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,7 +99,7 @@ public class Dashboard extends Fragment{
                 // Không xử lý type khác
                 break;
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmX", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.getDefault());
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         Calendar calendarWeek1 = Calendar.getInstance();
         calendarWeek1.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -240,6 +244,7 @@ public class Dashboard extends Fragment{
                 // Không xử lý type khác
                 break;
         }
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.getDefault());
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         Calendar calendarWeek1 = Calendar.getInstance();
@@ -1022,4 +1027,41 @@ public class Dashboard extends Fragment{
     public User getUser(){
         return user;
     }
+
+    public static String convertDateStringIfNeeded(String input, String inputFormat, String outputFormat) {
+        // Nếu chuỗi đã đúng định dạng mong muốn, trả về chuỗi ban đầu
+        if (isValidFormat(outputFormat, input)) {
+            return input; // Chuỗi đã đúng định dạng
+        }
+
+        // Nếu chuỗi khớp định dạng đầu vào, chuyển đổi sang định dạng đầu ra
+        if (isValidFormat(inputFormat, input)) {
+            try {
+                SimpleDateFormat inputFormatter = new SimpleDateFormat(inputFormat);
+                inputFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+                Date date = inputFormatter.parse(input); // Phân tích chuỗi sang đối tượng Date
+
+                SimpleDateFormat outputFormatter = new SimpleDateFormat(outputFormat);
+                outputFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+                return outputFormatter.format(date); // Chuyển đổi sang chuỗi mới
+            } catch (ParseException e) {
+                return "Lỗi khi chuyển đổi định dạng: " + e.getMessage();
+            }
+        }
+
+        // Nếu không khớp bất kỳ định dạng nào, trả về chuỗi không hợp lệ
+        return "Chuỗi không khớp định dạng!";
+    }
+
+    public static boolean isValidFormat(String format, String value) {
+        SimpleDateFormat formatter = new SimpleDateFormat(format);
+        formatter.setLenient(false); // Đảm bảo kiểm tra nghiêm ngặt
+        try {
+            formatter.parse(value); // Thử phân tích chuỗi
+            return true; // Chuỗi khớp định dạng
+        } catch (ParseException e) {
+            return false; // Chuỗi không khớp
+        }
+    }
+
 }

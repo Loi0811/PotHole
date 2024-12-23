@@ -40,6 +40,7 @@ import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -75,9 +76,11 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -103,7 +106,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private Handler handler = new Handler();
     private Runnable searchRunnable;
     private AutoCompleteTextView searchLocation;
-    private ImageView clearButton, runButton, stopButton;
+    private ImageView clearButton, runButton, stopButton, filterButton;
     private LatLng destination;
     private Polyline currentPolyline;
     private LocationCallback locationCallback;
@@ -126,6 +129,9 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private Update listener;
     private boolean isAlerting = false;
     private AddressPotholeClass old_address;
+    private boolean caution_check = true;
+    private boolean warning_check = true;
+    private boolean danger_check = true;
 
 
     @Override
@@ -188,6 +194,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         clearButton = view.findViewById(R.id.clear);
         runButton = view.findViewById(R.id.run);
         stopButton = view.findViewById(R.id.stop);
+        filterButton = view.findViewById(R.id.filter);
 
         note = view.findViewById(R.id.note);
         des = view.findViewById(R.id.destination);
@@ -217,6 +224,56 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         stopButton.setOnClickListener(v -> {
             cancelRoute();
             stopButton.setVisibility(View.GONE);
+        });
+
+        filterButton.setOnClickListener(v -> {
+
+            View dialogView = getLayoutInflater().inflate(R.layout.filter_dialog, null);
+
+            CheckBox checkBoxCation = dialogView.findViewById(R.id.checkbox_caution);
+            CheckBox checkBoxWarning = dialogView.findViewById(R.id.checkbox_warning);
+            CheckBox checkBoxDanger = dialogView.findViewById(R.id.checkbox_danger);
+            Spinner timeSpinner = dialogView.findViewById(R.id.time_spinner);
+
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireActivity(),
+                    android.R.layout.simple_spinner_item,
+                    new String[]{"7 Days", "1 Month", "1 Year", "All Time"});
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            timeSpinner.setAdapter(adapter);
+
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+            builder.setView(dialogView);
+            AlertDialog dialog = builder.create();
+
+            checkBoxCation.setChecked(caution_check);
+            checkBoxWarning.setChecked(warning_check);
+            checkBoxDanger.setChecked(danger_check);
+
+            Button btnApply = dialogView.findViewById(R.id.btn_apply);
+            btnApply.setOnClickListener(applyView -> {
+                boolean cation = checkBoxCation.isChecked();
+                caution_check = checkBoxCation.isChecked();
+                boolean warning = checkBoxWarning.isChecked();
+                warning_check = checkBoxWarning.isChecked();
+                boolean danger = checkBoxDanger.isChecked();
+                danger_check = checkBoxDanger.isChecked();
+                String selectedTime = (String) timeSpinner.getSelectedItem();
+
+                applyFilters(cation, warning, danger, selectedTime);
+
+                dialog.dismiss();
+            });
+
+            Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
+            btnCancel.setOnClickListener(cancelView -> dialog.dismiss());
+
+            dialog.show();
+
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            }
         });
 
         searchLocation.addTextChangedListener(new TextWatcher() {
@@ -294,6 +351,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
 
 
@@ -354,7 +412,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                     dialog.dismiss();
                 });
 
-        // Hiển thị hộp thoại
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -1023,10 +1080,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                         LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
                         requestRoute(currentLocation, destination);
 
-
-
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17));
-
 
                         PotholeClass nearestPothole = getNearestPothole(currentLocation);
                         if (nearestPothole != null) {
@@ -1042,6 +1096,83 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                     }
                 });
 
+
+
+        LocationRequest routeLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(2000)
+                .setFastestInterval(1000);
+
+        LocationCallback routeLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) return;
+
+                Log.d("LocationCallback", "Location update received.");
+
+                Location location = locationResult.getLastLocation();
+                if (location != null) {
+                    LatLng newLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    Log.d("LocationCallback", "Current LatLng: " + newLatLng);
+
+                    if(isRouteDrawn){
+                        PotholeClass nearestPothole = getNearestPothole(newLatLng);
+                        if (nearestPothole != null) {
+                            double distanceToNearest = calculateDistance(newLatLng, new LatLng(nearestPothole.getLatitude(), nearestPothole.getLongitude()));
+
+
+                            int value = (int) distanceToNearest;
+                            String data = "Nearest pothole: " + value + "m";
+                            near_pothole.setText(data);
+
+                            if (distanceToNearest <= 30) {
+                                near_pothole.setTextColor(getResources().getColor(R.color.risk_red));
+
+                                animateTextViewShake(near_pothole);
+                            } else {
+                                near_pothole.setTextColor(getResources().getColor(R.color.dark_gray));
+                            }
+
+                            if (distanceToNearest <= 30 && !isAlerting) {
+                                isAlerting = true;
+                                if (isSoundEnabled()) playSound();
+                                if (isVibrationEnabled()) vibratePhone();
+
+                                new Handler(Looper.getMainLooper()).postDelayed(() -> isAlerting = false, 1500);
+                            }
+
+                            if (distanceToNearest <= 10) {
+                                markers.removeIf(marker -> {
+                                    if (marker.getTag() == nearestPothole) {
+                                        marker.remove();
+                                        return true;
+                                    }
+                                    return false;
+                                });
+                                Toast.makeText(requireContext(), "Pothole passed!", Toast.LENGTH_SHORT).show();
+                                isAlerting = false;
+                                near_pothole.setTextColor(getResources().getColor(R.color.dark_gray));
+                            }
+                        } else {
+                            near_pothole.setText("No pothole");
+                            isAlerting = false;
+                            near_pothole.setTextColor(getResources().getColor(R.color.dark_gray));
+                        }
+                    } else {
+                        fusedLocationClient.removeLocationUpdates(this);
+                    }
+
+                    if (isUserAtDestination(newLatLng, destination)) {
+                        fusedLocationClient.removeLocationUpdates(this);
+                        isRouteDrawn = false;
+                        Toast.makeText(requireContext(), "You have arrived at your destination!", Toast.LENGTH_SHORT).show();
+                        cancelRoute();
+                    }
+                }
+            }
+        };
+
+        fusedLocationClient.requestLocationUpdates(routeLocationRequest, routeLocationCallback, Looper.getMainLooper());
 
 
         // Khởi tạo locationCallback
@@ -1465,7 +1596,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         history.setAction(action);
         history.setAddressPothole(new_address);
         history.setAuthor(potholeClass.getAuthor());
-        history.setDate(potholeClass.getDate());
+        history.setDate(getCurrentTime());
         history.setType(potholeClass.getType());
         history.setLatitude(potholeClass.getLatitude());
         history.setLongitude(potholeClass.getLongitude());
@@ -1524,6 +1655,47 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         }
     }
 
+    private void applyFilters(boolean caution, boolean warning, boolean danger, String selectedTime) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.getDefault());
+        long currentTime = System.currentTimeMillis();
+        for (Marker marker : markers) {
+            PotholeClass potholeClass = (PotholeClass) marker.getTag();
+            if (potholeClass != null){
+                Integer type = potholeClass.getType();
+
+                boolean matchesSeverity = (caution && (type == 1)) ||
+                        (warning && (type == 2)) ||
+                        (danger && (type == 3));
+
+                Date reportDate = parseDate(potholeClass.getDate());
+                if (reportDate == null) continue;
+
+
+
+                boolean matchesTime = false;
+                if (selectedTime.equals("7 Days")) {
+                    matchesTime = currentTime - reportDate.getTime() <= 7L * 24 * 60 * 60 * 1000;
+                } else if (selectedTime.equals("1 Month")) {
+                    matchesTime = currentTime - reportDate.getTime() <= 30L * 24 * 60 * 60 * 1000;
+                } else if (selectedTime.equals("1 Year")) {
+                    matchesTime = currentTime - reportDate.getTime() <= 365L * 24 * 60 * 60 * 1000;
+                } else if (selectedTime.equals("All Time")) {
+                    matchesTime = true;
+                }
+                marker.setVisible(matchesSeverity && matchesTime);
+            }
+        }
+    }
+
+    private Date parseDate(String dateString) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.getDefault());
+        try {
+            return dateFormat.parse(dateString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public static boolean isEmulator() {
         return Build.FINGERPRINT.contains("generic") ||

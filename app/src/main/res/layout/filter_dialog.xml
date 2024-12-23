@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/edittext">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Danger Levels"
+        android:textStyle="bold"
+        android:paddingBottom="8dp"
+        android:textColor="@color/dark_gray"
+        android:textSize="20dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <CheckBox
+            android:id="@+id/checkbox_caution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Caution"
+            android:textSize="16dp"
+            android:layout_weight="1"
+            android:textColor="@color/risk_yellow"
+            android:textStyle="bold"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_warning"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Warning"
+            android:textSize="16dp"
+            android:layout_weight="1"
+            android:textColor="@color/risk_orange"
+            android:textStyle="bold"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_danger"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Danger"
+            android:textSize="16dp"
+            android:layout_weight="1"
+            android:textColor="@color/risk_red"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Filter by Time"
+        android:textStyle="bold"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/dark_gray"
+        android:textSize="20dp"/>
+
+    <Spinner
+        android:id="@+id/time_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:padding="5dp"
+        android:background="@drawable/edittext"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:paddingTop="16dp">
+
+        <Button
+            android:id="@+id/btn_apply"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Apply"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/light_gray"
+            android:textSize="16dp"
+            android:background="@drawable/button"/>
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/dark_gray"
+            android:textSize="16dp"
+            android:background="@drawable/button_spinner"/>
+    </LinearLayout>
+
+</LinearLayout>

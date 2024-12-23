@@ -53,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
 
         checkUser = false;
 
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        String language = sharedPreferences.getString("language","English");
+
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
         gsc = GoogleSignIn.getClient(this,gso);
 
@@ -96,7 +99,12 @@ public class MainActivity extends AppCompatActivity {
         CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(this, items);
         spinner.setAdapter(adapter);
 //
-//        spinner.setSelection(0);
+        if (language.equals("English")){
+            spinner.setSelection(0);
+        } else if (language.equals("Vietnamese")){
+            spinner.setSelection(1);
+        }
+
     }
 
     void signInGoogle(){

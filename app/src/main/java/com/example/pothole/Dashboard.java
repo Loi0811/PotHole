@@ -102,7 +102,7 @@ public class Dashboard extends Fragment{
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     private FusedLocationProviderClient fusedLocationProviderClient;
-    private LocationCallback locationCallback;
+    private LocationCallback locationUpdateCallback;
     private Location previousLocation = null;
     private Double totalKilometers = 0.0;
 
@@ -765,7 +765,7 @@ public class Dashboard extends Fragment{
                         long daysDifference = calculateDaysBetweenWithCurrent(createday, pattern);
                         String numberday = String.valueOf(daysDifference);
                         dayscreate.setText(numberday);
-                        distances.setText(String.format(Locale.getDefault(), "%.2f km", user.getTravel()));
+                        distances.setText(String.format(Locale.getDefault(), "%.1f km", user.getTravel()));
                         totalKilometers = user.getTravel();
                         startLocationUpdates();
                     } else {
@@ -1134,7 +1134,7 @@ public class Dashboard extends Fragment{
         locationRequest.setFastestInterval(2000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        LocationCallback locationCallback = new LocationCallback() {
+        LocationCallback locationUpdateCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) return;
@@ -1144,14 +1144,14 @@ public class Dashboard extends Fragment{
                         double distance = previousLocation.distanceTo(location) / 1000;
                         totalKilometers += distance;
                         user.setTravel(totalKilometers);
-                        distances.setText(String.format(Locale.getDefault(), "%.2f km", totalKilometers));
+                        distances.setText(String.format(Locale.getDefault(), "%.1f km", totalKilometers));
                     }
                     previousLocation = location;
                 }
             }
         };
 
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationUpdateCallback, Looper.getMainLooper());
     }
 
     private void updateTravel(String email, Double travel) {
@@ -1203,8 +1203,8 @@ public class Dashboard extends Fragment{
     public void onDestroyView() {
         super.onDestroyView();
         updateTravel(email,totalKilometers);
-        if (locationCallback != null) {
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+        if (locationUpdateCallback != null) {
+            fusedLocationProviderClient.removeLocationUpdates(locationUpdateCallback);
         }
     }
 

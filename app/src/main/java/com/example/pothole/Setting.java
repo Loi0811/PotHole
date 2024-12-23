@@ -119,7 +119,7 @@ public class Setting extends Fragment {
         }
         if (!sharedPreferences.contains("language")) {
             sharedPreferences.edit().putString("language", "English").apply();
-            language = "en";
+            language = "English";
         } else {
             language = sharedPreferences.getString("language", "English");
         }
@@ -168,6 +168,10 @@ public class Setting extends Fragment {
         gsc.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(Task<Void> task) {
+                SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("AppPrefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.remove("Email");
+                editor.apply();
                 Intent intent = new Intent(getActivity(), MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);

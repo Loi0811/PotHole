@@ -78,8 +78,7 @@
             android:id="@+id/image"
             android:scaleType="centerCrop"
             android:background="@drawable/image"
-            android:src="@drawable/baseline_photo_camera_24"
-            android:padding="40dp"/>
+            android:src="@drawable/baseline_photo_camera_24" />
     </androidx.cardview.widget.CardView>
     <RelativeLayout
         android:background="@drawable/bgdetail"

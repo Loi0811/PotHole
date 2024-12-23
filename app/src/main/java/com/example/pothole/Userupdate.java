@@ -6,6 +6,7 @@ public class Userupdate {
     private AddressUser address;
     private String birthday;
     private String gender;
+    private String avatar;
 
     public String getGender() {
         return gender;
@@ -45,5 +46,13 @@ public class Userupdate {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }

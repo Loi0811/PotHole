@@ -9,6 +9,8 @@ public class User {
     private String birthday;
     private String gender;
     private String create;
+    private String avatar;
+    private Double travel;
 
     // Getters and Setters
 
@@ -74,6 +76,22 @@ public class User {
 
     public void setCreate(String create) {
         this.create = create;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public Double getTravel() {
+        return travel;
+    }
+
+    public void setTravel(Double travel) {
+        this.travel = travel;
     }
 }
 

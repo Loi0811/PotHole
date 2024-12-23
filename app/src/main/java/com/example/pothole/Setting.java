@@ -3,6 +3,7 @@ package com.example.pothole;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,10 +12,12 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -58,7 +61,7 @@ public class Setting extends Fragment {
     private Button btnSave;
     private Calendar calendar = Calendar.getInstance();
     private EditText etPhone, etDistrict, etProvince, etName;
-    private ImageView backIcon;
+    private ImageView backIcon, avatar;
     private UserApiService apiService;
     private User user_profile;
     private UserSetting listener;
@@ -66,7 +69,7 @@ public class Setting extends Fragment {
     private boolean isPasswordVisible1 = false;
     private boolean isPasswordVisible2 = false;
     private boolean isVibration, isSound, isSensor;
-    private String language;
+    private String language, id_avatar;
     private EditText passwordField0, passwordField1, passwordField2;
     private SharedPreferences sharedPreferences;
 
@@ -193,6 +196,14 @@ public class Setting extends Fragment {
         tvBirthday = popupView.findViewById(R.id.birthday);
         btnSave = popupView.findViewById(R.id.done);
         backIcon = popupView.findViewById(R.id.back);
+        avatar = popupView.findViewById(R.id.image);
+
+        changeAvatar(user_profile.getAvatar());
+
+        avatar.setOnClickListener(v->{
+            showAvatarDialog();
+        });
+
 
         if (user_profile != null) {
             etName.setText(user_profile.getName());
@@ -220,9 +231,9 @@ public class Setting extends Fragment {
         });
 
         // Hiển thị PopupWindow tại vị trí anchorView
-        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Đặt nền trong suốt
-        popupWindow.setElevation(10); // Hiệu ứng độ cao
-        popupWindow.showAsDropDown(anchorView, 0, 20); // Hiển thị bên dưới `anchorView`
+        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popupWindow.setElevation(10);
+        popupWindow.showAsDropDown(anchorView, 0, 20);
     }
 
     private void showChangePasswordPopup(View anchorView) {
@@ -609,6 +620,7 @@ public class Setting extends Fragment {
         user_profile.setGender(gender);
         user_profile.setName(name);
         user_profile.setBirthday(birthday);
+        user_profile.setAvatar(id_avatar);
 
         AddressUser addressUser = new AddressUser();
         addressUser.setDistrict(district);
@@ -626,6 +638,7 @@ public class Setting extends Fragment {
         user.setAddress(address);
         user.setBirthday(birthday);
         user.setGender(gender);
+        user.setAvatar(id_avatar);
 
         apiService.updateUser(email, user).enqueue(new Callback<ApiResponse>() {
             @Override
@@ -675,6 +688,156 @@ public class Setting extends Fragment {
                 Toast.makeText(requireActivity(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void changeAvatar(String id_avatar){
+        switch (id_avatar){
+            case "id0":
+                avatar.setImageResource(R.drawable.image);
+                break;
+            case "id1":
+                avatar.setImageResource(R.drawable.avatar1);
+                break;
+            case "id2":
+                avatar.setImageResource(R.drawable.avatar2);
+                break;
+            case "id3":
+                avatar.setImageResource(R.drawable.avatar3);
+                break;
+            case "id4":
+                avatar.setImageResource(R.drawable.avatar4);
+                break;
+            case "id5":
+                avatar.setImageResource(R.drawable.avatar5);
+                break;
+            case "id6":
+                avatar.setImageResource(R.drawable.avatar6);
+                break;
+            case "id7":
+                avatar.setImageResource(R.drawable.avatar7);
+                break;
+            case "id8":
+                avatar.setImageResource(R.drawable.avatar8);
+                break;
+            case "id9":
+                avatar.setImageResource(R.drawable.avatar9);
+                break;
+            case "id10":
+                avatar.setImageResource(R.drawable.avatar10);
+                break;
+            case "id11":
+                avatar.setImageResource(R.drawable.avatar11);
+                break;
+            case "id12":
+                avatar.setImageResource(R.drawable.avatar12);
+                break;
+        }
+    }
+
+    private void showAvatarDialog() {
+        Dialog dialog = new Dialog(getContext());
+        dialog.setContentView(R.layout.avatar);
+        dialog.setCancelable(true);
+
+        ImageView back = dialog.findViewById(R.id.back);
+        back.setOnClickListener(v->{
+            dialog.dismiss();
+        });
+
+        ImageView avatar1 = dialog.findViewById(R.id.avatar1);
+        avatar1.setOnClickListener(v->{
+            id_avatar = "id1";
+            avatar.setImageResource(R.drawable.avatar1);
+            dialog.dismiss();
+        });
+
+        ImageView avatar2 = dialog.findViewById(R.id.avatar2);
+        avatar2.setOnClickListener(v->{
+            id_avatar = "id2";
+            avatar.setImageResource(R.drawable.avatar2);
+            dialog.dismiss();
+        });
+        ImageView avatar3 = dialog.findViewById(R.id.avatar3);
+        avatar3.setOnClickListener(v->{
+            id_avatar = "id3";
+            avatar.setImageResource(R.drawable.avatar3);
+            dialog.dismiss();
+        });
+
+        ImageView avatar4 = dialog.findViewById(R.id.avatar4);
+        avatar4.setOnClickListener(v->{
+            id_avatar = "id4";
+            avatar.setImageResource(R.drawable.avatar4);
+            dialog.dismiss();
+        });
+        ImageView avatar5 = dialog.findViewById(R.id.avatar5);
+        avatar5.setOnClickListener(v->{
+            id_avatar = "id5";
+            avatar.setImageResource(R.drawable.avatar5);
+            dialog.dismiss();
+        });
+
+        ImageView avatar6 = dialog.findViewById(R.id.avatar6);
+        avatar6.setOnClickListener(v->{
+            id_avatar = "id6";
+            avatar.setImageResource(R.drawable.avatar6);
+            dialog.dismiss();
+        });
+
+        ImageView avatar7 = dialog.findViewById(R.id.avatar7);
+        avatar7.setOnClickListener(v->{
+            id_avatar = "id7";
+            avatar.setImageResource(R.drawable.avatar7);
+            dialog.dismiss();
+        });
+
+        ImageView avatar8 = dialog.findViewById(R.id.avatar8);
+        avatar8.setOnClickListener(v->{
+            id_avatar = "id8";
+            avatar.setImageResource(R.drawable.avatar8);
+            dialog.dismiss();
+        });
+
+        ImageView avatar9 = dialog.findViewById(R.id.avatar9);
+        avatar9.setOnClickListener(v->{
+            id_avatar = "id9";
+            avatar.setImageResource(R.drawable.avatar9);
+            dialog.dismiss();
+        });
+
+        ImageView avatar10 = dialog.findViewById(R.id.avatar10);
+        avatar10.setOnClickListener(v->{
+            id_avatar = "id10";
+            avatar.setImageResource(R.drawable.avatar10);
+            dialog.dismiss();
+        });
+
+        ImageView avatar11 = dialog.findViewById(R.id.avatar11);
+        avatar11.setOnClickListener(v->{
+            id_avatar = "id11";
+            avatar.setImageResource(R.drawable.avatar11);
+            dialog.dismiss();
+        });
+
+        ImageView avatar12 = dialog.findViewById(R.id.avatar12);
+        avatar12.setOnClickListener(v->{
+            id_avatar = "id12";
+            avatar.setImageResource(R.drawable.avatar12);
+            dialog.dismiss();
+        });
+
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT
+            );
+            dialog.getWindow().setGravity(Gravity.CENTER);
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        // Hiển thị dialog
+        dialog.show();
     }
 
     @Override

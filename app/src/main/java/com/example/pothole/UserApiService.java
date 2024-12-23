@@ -1,5 +1,7 @@
 package com.example.pothole;
 
+import java.util.HashMap;
+
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -31,6 +33,13 @@ public interface UserApiService {
     @GET("email/{email}")
     Call<ApiResponse> getUserByEmail(@Path("email") String email);
 
+    @PUT("update-travel/{email}")
+    Call<ApiResponse> updateTravel(
+            @Path("email") String email,
+            @Body HashMap<String, Double> travel
+    );
+
+
     @POST("add-pothole")
     Call<ApiResponse> addPothole(@Body Pothole pothole);
 
@@ -42,5 +51,11 @@ public interface UserApiService {
 
     @DELETE("delete-pothole")
     Call<PotholeResponse> deletePothole(@Query("latitude") double latitude, @Query("longitude") double longitude, @Query("author") String author);
+
+    @POST("add-history")
+    Call<ApiResponse> addHistory(@Body HistoryClass history);
+
+    @GET("get-histories")
+    Call<HistoryResponse> getHistories(@Query("author") String author);
 }
 

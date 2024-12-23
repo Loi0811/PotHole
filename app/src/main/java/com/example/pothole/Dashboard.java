@@ -1,10 +1,15 @@
 package com.example.pothole;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +19,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.github.mikephil.charting.charts.BarChart;
@@ -26,12 +34,17 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -46,11 +59,17 @@ import java.util.Locale;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+
 public class Dashboard extends Fragment{
 
     private Button weekButton, monthButton, yearButton;
-    private TextView time,name, dayscreate;
-    private ImageView pre, next, user_profile;
+    private TextView time,name, dayscreate, user_point, distances;
+    private ImageView pre, next, avatar;
     private PieChart pieChart;
     private BarChart barChart;
     private int typeTime = 0;
@@ -74,13 +93,27 @@ public class Dashboard extends Fragment{
     private UserApiService apiService;
     private List<PotholeClass> potholes_user = new ArrayList<>();
     private Integer danger = 0, warning = 0 , caution = 0;
+    private Integer point = 0;
 
     private long days;
 
     private Integer typeBarChart;
 
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private LocationCallback locationCallback;
+    private Location previousLocation = null;
+    private Double totalKilometers = 0.0;
+
     public Dashboard() {
 
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
     }
 
     public void ChartAfterAdd(PotholeClass potholeClass){
@@ -88,15 +121,17 @@ public class Dashboard extends Fragment{
         switch (potholeClass.getType()) {
             case 1:
                 caution++;
+                point += 1;
                 break;
             case 2:
                 warning++;
+                point += 3;
                 break;
             case 3:
                 danger++;
+                point += 5;
                 break;
             default:
-                // Không xử lý type khác
                 break;
         }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.getDefault());
@@ -195,53 +230,63 @@ public class Dashboard extends Fragment{
                 timeAgo = 0;
                 break;
         }
+        String potholes_point = "Point: " + point;
+        user_point.setText(potholes_point);
     }
 
     public void ChartAfterUpdate(Integer old_type, Integer new_type){
         switch (new_type) {
             case 1:
                 caution++;
+                point += 1;
                 break;
             case 2:
                 warning++;
+                point += 3;
                 break;
             case 3:
                 danger++;
+                point += 5;
                 break;
             default:
-                // Không xử lý type khác
                 break;
         }
         switch (old_type) {
             case 1:
                 caution--;
+                point -= 1;
                 break;
             case 2:
                 warning--;
+                point -= 3;
                 break;
             case 3:
                 danger--;
+                point -= 5;
                 break;
             default:
-                // Không xử lý type khác
                 break;
         }
         setupPieChart(danger, warning, caution);
+        String potholes_point = "Point: " + point;
+        user_point.setText(potholes_point);
     }
 
     public void ChartAfterDelete(Integer type, String date){
         switch (type) {
             case 1:
                 caution--;
+                point -= 1;
                 break;
             case 2:
                 warning--;
+                point -= 3;
                 break;
             case 3:
                 danger--;
+                point -= 5;
                 break;
             default:
-                // Không xử lý type khác
                 break;
         }
 
@@ -468,11 +513,14 @@ public class Dashboard extends Fragment{
                 time.setText("This year");
                 break;
         }
+        String potholes_point = "Point: " + point;
+        user_point.setText(potholes_point);
     }
 
     public void ChangeUser(User newUser){
         this.user = newUser;
         name.setText(newUser.getName());
+        changeAvatar(newUser.getAvatar());
     }
 
 
@@ -483,7 +531,7 @@ public class Dashboard extends Fragment{
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
         pieChart = view.findViewById(R.id.dount_chart);
-        user_profile = view.findViewById(R.id.image);
+        avatar = view.findViewById(R.id.image);
         barChart = view.findViewById(R.id.bar_chart);
         weekButton = view.findViewById(R.id.week);
         monthButton = view.findViewById(R.id.month);
@@ -494,6 +542,8 @@ public class Dashboard extends Fragment{
         time = view.findViewById(R.id.time);
         pre = view.findViewById(R.id.pre);
         next = view.findViewById(R.id.next);
+        user_point = view.findViewById(R.id.point);
+        distances = view.findViewById(R.id.distances);
 
 
         apiService = ApiClient.getClient(isEmulator()).create(UserApiService.class);
@@ -501,16 +551,15 @@ public class Dashboard extends Fragment{
         typeBarChart = 0;
 
         // Set up user profile navigation
-        user_profile.setOnClickListener(v -> {
+        avatar.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), Profile.class);
             intent.putExtra("name", user.getName());
             intent.putExtra("gender", user.getGender());
             intent.putExtra("birthday", user.getBirthday());
             String user_address = user.getAddress().getDistrict() + "\n " + user.getAddress().getProvince();
-            Log.d("ADDRESS","Address: " + user_address);
             intent.putExtra("address", user_address);
             intent.putExtra("phone", user.getPhone());
-            Log.d("PHONE","Phone: " + user.getPhone());
+            intent.putExtra("avatar",user.getAvatar());
             startActivity(intent);
         });
 
@@ -708,15 +757,17 @@ public class Dashboard extends Fragment{
                     user = response.body().getData();
                     if (user != null) {
                         String nameuser = user.getName();
+                        changeAvatar(user.getAvatar());
                         String createuser = user.getCreate();
                         String createday = formatDateFromMongo(createuser);
                         name.setText(nameuser);
                         String pattern = "yyyy-MM-dd";
-                        // Tính số ngày giữa hai thời điểm
                         long daysDifference = calculateDaysBetweenWithCurrent(createday, pattern);
                         String numberday = String.valueOf(daysDifference);
                         dayscreate.setText(numberday);
-                        Toast.makeText(requireActivity(), user.getName(), Toast.LENGTH_SHORT).show();
+                        distances.setText(String.format(Locale.getDefault(), "%.2f km", user.getTravel()));
+                        totalKilometers = user.getTravel();
+                        startLocationUpdates();
                     } else {
                         Log.e("Error", "User is null");
                     }
@@ -748,8 +799,9 @@ public class Dashboard extends Fragment{
                     PotholeResponse potholeResponse = response.body();
                     potholes_user = potholeResponse.getPotholes();
                     if (potholes_user != null) {
-                        Toast.makeText(requireActivity(), "Potholes size: " + potholes_user.size(), Toast.LENGTH_SHORT).show();
                         categorizePotholes();
+                        String potholes_point = "Point: " + point;
+                        user_point.setText(potholes_point);
                         setupPieChart(danger,warning,caution);
                         setupBarChart(weekData1, labelw);
                     } else {
@@ -886,7 +938,7 @@ public class Dashboard extends Fragment{
             calendarMonth3.set(Calendar.MILLISECOND, 0);
             Date startOfMonth3 = calendarMonth3.getTime();
 
-            calendarMonth3.set(Calendar.DAY_OF_MONTH, calendarMonth3.getActualMaximum(Calendar.DAY_OF_MONTH)); // Cuối tháng
+            calendarMonth3.set(Calendar.DAY_OF_MONTH, calendarMonth3.getActualMaximum(Calendar.DAY_OF_MONTH));
             calendarMonth3.set(Calendar.HOUR_OF_DAY, 23);
             calendarMonth3.set(Calendar.MINUTE, 59);
             calendarMonth3.set(Calendar.SECOND, 59);
@@ -901,6 +953,7 @@ public class Dashboard extends Fragment{
             danger = 0;
             warning = 0;
             caution = 0;
+            point = 0;
 
             // Duyệt qua danh sách potholes
             for (PotholeClass pothole : potholes_user) {
@@ -909,20 +962,21 @@ public class Dashboard extends Fragment{
                     switch (pothole.getType()) {
                         case 1:
                             caution++;
+                            point += 1;
                             break;
                         case 2:
                             warning++;
+                            point += 3;
                             break;
                         case 3:
                             danger++;
+                            point += 5;
                             break;
                         default:
-                            // Không xử lý type khác
                             break;
                     }
 
                     try {
-                        // Phân tích dữ liệu theo tuần, tháng và năm
                         Date potholeDate = sdf.parse(pothole.getDate());
                         if (potholeDate != null) {
                             // Theo tuần
@@ -978,13 +1032,6 @@ public class Dashboard extends Fragment{
                     }
                 }
             }
-
-            // Hiển thị kết quả
-            Toast.makeText(requireActivity(),
-                    "Caution: " + caution + ", Warning: " + warning + ", Danger: " + danger,
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(requireActivity(), "No potholes found or list is empty", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1028,39 +1075,136 @@ public class Dashboard extends Fragment{
         return user;
     }
 
-    public static String convertDateStringIfNeeded(String input, String inputFormat, String outputFormat) {
-        // Nếu chuỗi đã đúng định dạng mong muốn, trả về chuỗi ban đầu
-        if (isValidFormat(outputFormat, input)) {
-            return input; // Chuỗi đã đúng định dạng
+
+    public void changeAvatar(String id_avatar){
+        switch (id_avatar){
+            case "id0":
+                avatar.setImageResource(R.drawable.image);
+                break;
+            case "id1":
+                avatar.setImageResource(R.drawable.avatar1);
+                break;
+            case "id2":
+                avatar.setImageResource(R.drawable.avatar2);
+                break;
+            case "id3":
+                avatar.setImageResource(R.drawable.avatar3);
+                break;
+            case "id4":
+                avatar.setImageResource(R.drawable.avatar4);
+                break;
+            case "id5":
+                avatar.setImageResource(R.drawable.avatar5);
+                break;
+            case "id6":
+                avatar.setImageResource(R.drawable.avatar6);
+                break;
+            case "id7":
+                avatar.setImageResource(R.drawable.avatar7);
+                break;
+            case "id8":
+                avatar.setImageResource(R.drawable.avatar8);
+                break;
+            case "id9":
+                avatar.setImageResource(R.drawable.avatar9);
+                break;
+            case "id10":
+                avatar.setImageResource(R.drawable.avatar10);
+                break;
+            case "id11":
+                avatar.setImageResource(R.drawable.avatar11);
+                break;
+            case "id12":
+                avatar.setImageResource(R.drawable.avatar12);
+                break;
         }
-
-        // Nếu chuỗi khớp định dạng đầu vào, chuyển đổi sang định dạng đầu ra
-        if (isValidFormat(inputFormat, input)) {
-            try {
-                SimpleDateFormat inputFormatter = new SimpleDateFormat(inputFormat);
-                inputFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-                Date date = inputFormatter.parse(input); // Phân tích chuỗi sang đối tượng Date
-
-                SimpleDateFormat outputFormatter = new SimpleDateFormat(outputFormat);
-                outputFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-                return outputFormatter.format(date); // Chuyển đổi sang chuỗi mới
-            } catch (ParseException e) {
-                return "Lỗi khi chuyển đổi định dạng: " + e.getMessage();
-            }
-        }
-
-        // Nếu không khớp bất kỳ định dạng nào, trả về chuỗi không hợp lệ
-        return "Chuỗi không khớp định dạng!";
     }
 
-    public static boolean isValidFormat(String format, String value) {
-        SimpleDateFormat formatter = new SimpleDateFormat(format);
-        formatter.setLenient(false); // Đảm bảo kiểm tra nghiêm ngặt
-        try {
-            formatter.parse(value); // Thử phân tích chuỗi
-            return true; // Chuỗi khớp định dạng
-        } catch (ParseException e) {
-            return false; // Chuỗi không khớp
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(),
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    1);
+            return;
+        }
+
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(2000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationCallback locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) return;
+
+                for (Location location : locationResult.getLocations()) {
+                    if (previousLocation != null) {
+                        double distance = previousLocation.distanceTo(location) / 1000;
+                        totalKilometers += distance;
+                        user.setTravel(totalKilometers);
+                        distances.setText(String.format(Locale.getDefault(), "%.2f km", totalKilometers));
+                    }
+                    previousLocation = location;
+                }
+            }
+        };
+
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+    }
+
+    private void updateTravel(String email, Double travel) {
+        HashMap<String, Double> travelData = new HashMap<>();
+        travelData.put("travel", travel);
+
+        apiService.updateTravel(email, travelData).enqueue(new Callback<ApiResponse>() {
+            @Override
+            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse apiResponse = response.body();
+                    if (apiResponse.isStatus()) {
+                        Toast.makeText(requireActivity(), "Travel updated successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireActivity(), apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(requireActivity(), "Failed to update travel", Toast.LENGTH_SHORT).show();
+                    Log.e("API_ERROR", "Error: " + response.errorBody());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse> call, Throwable t) {
+                Toast.makeText(requireActivity(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startLocationUpdates();
+            } else {
+                Log.e("DistanceFragment", "Permission denied.");
+            }
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        updateTravel(email,totalKilometers);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        updateTravel(email,totalKilometers);
+        if (locationCallback != null) {
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback);
         }
     }
 

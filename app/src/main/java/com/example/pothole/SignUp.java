@@ -157,6 +157,8 @@ public class SignUp extends AppCompatActivity {
         user.setBirthday("2/2/2000");
         user.setGender("gender");
         user.setCreate(currentDate);
+        user.setAvatar("id0");
+        user.setTravel(0.0);
 
         apiService.registerUser(user).enqueue(new Callback<ApiResponse>() {
             @Override

@@ -123,15 +123,16 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private LinearLayout note;
     private TextView des, near_pothole;
     private String userEmail;
-    private UpdateChart listener;
+    private Update listener;
     private boolean isAlerting = false;
+    private AddressPotholeClass old_address;
 
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof UpdateChart) {
-            listener = (UpdateChart) context; // Gắn kết Activity với Interface
+        if (context instanceof Update) {
+            listener = (Update) context;
         } else {
             throw new RuntimeException(context.toString() + " must implement Update");
         }
@@ -151,30 +152,13 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 float y = event.values[1];
                 float z = event.values[2];
 
-                // Tính tổng hợp gia tốc: sqrt(x^2 + y^2 + z^2)
                 float acceleration = (float) Math.sqrt(x * x + y * y + z * z);
 
-                // Kiểm tra nếu gia tốc vượt ngưỡng
                 if (Math.abs(acceleration - lastAcceleration) > THRESHOLD) {
 
                     addPotholeAlert(Math.abs(acceleration - lastAcceleration));
                 }
                 lastAcceleration = acceleration;
-
-            } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-                // Lấy dữ liệu từ cảm biến con quay hồi chuyển
-                float deltaX = event.values[0]; // Tốc độ quay trên trục X
-                float deltaY = event.values[1]; // Tốc độ quay trên trục Y
-                float deltaZ = event.values[2]; // Tốc độ quay trên trục Z
-
-                // Tính tổng hợp tốc độ quay: sqrt(deltaX^2 + deltaY^2 + deltaZ^2)
-                float angularVelocity = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-
-                // Kiểm tra nếu tốc độ quay vượt ngưỡng
-                if (angularVelocity > GYRO_THRESHOLD) {
-                    // Nếu có sự thay đổi góc lớn hơn ngưỡng
-                    showAddPotholeDialog(deltaX, deltaY, deltaZ); // Gọi dialog để thêm ổ gà
-                }
             }
         }
 
@@ -280,7 +264,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
             @Override
             public View getInfoWindow(Marker marker) {
-                // Không tùy chỉnh toàn bộ cửa sổ InfoWindow
                 return null;
             }
 
@@ -288,11 +271,9 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             public View getInfoContents(Marker marker) {
                 View view = getLayoutInflater().inflate(R.layout.custom_info_window, null);
 
-                // Ánh xạ các thành phần trong layout
                 TextView title = view.findViewById(R.id.title);
                 TextView snippet = view.findViewById(R.id.snippet);
 
-                // Lấy dữ liệu từ marker và hiển thị
                 title.setText(marker.getTitle());
                 snippet.setText(marker.getSnippet());
 
@@ -303,7 +284,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         });
 
         mMap.setOnInfoWindowClickListener(marker -> {
-            // Mở dialog hoặc thực hiện hành động
             showUpdateDialog(marker);
         });
 
@@ -311,11 +291,14 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             showLongPressOptions(latLng);
         });
 
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+        }
 
-        // Add markers
+
         addMarkers();
 
-        // Get current location and move camera to it
         getCurrentLocation();
 
 
@@ -323,9 +306,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
 
     @Override
     public void onPotholeAdded(PotholeClass newPothole) {
-        // Thêm ổ gà mới vào danh sách
         potholes.add(newPothole);
-        // Thêm marker mới lên bản đồ
         LatLng location = new LatLng(newPothole.getLatitude(), newPothole.getLongitude());
         String snippet = newPothole.getAddressPothole().getDistrict() + "," + newPothole.getAddressPothole().getProvince()
                 + "\n" + newPothole.getDate() + "\n" +
@@ -336,7 +317,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 .position(location)
                 .title("Pothole: " + newPothole.getAddressPothole().getStreetName())
                 .snippet(snippet)
-                .icon(getMarkerColor(newPothole.getType())); // Chọn màu marker dựa trên loại ổ gà
+                .icon(getMarkerColor(newPothole.getType()));
 
         Marker marker = mMap.addMarker(markerOptions);
 
@@ -393,11 +374,11 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         Button no = dialog.findViewById(R.id.no);
         int type;
 
-        if (acceleration > 17.0) {  // Gia tốc thay đổi trên 3 m/s²
+        if (acceleration > 17.0) {
             level.setText("Danger");
             level.setTextColor(getResources().getColor(R.color.risk_red));
             type = 3;
-        } else if (acceleration > 15.0) {  // Gia tốc thay đổi từ 1.5 đến 3 m/s²
+        } else if (acceleration > 15.0) {
             level.setText("Warning");
             type = 2;
             level.setTextColor(getResources().getColor(R.color.risk_orange));
@@ -443,7 +424,8 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             potholes.add(potholeClass);
 
             if (listener != null){
-                listener.DataChartAfterAdd(potholeClass);
+                listener.DataAfterAdd(potholeClass);
+                addHistory(potholeClass, potholeClass.getType(),potholeClass.getType(),potholeClass.getAddressPothole(),potholeClass.getAddressPothole(),"ADD POTHOLE");
             }
 
             LatLng location = new LatLng(latitude, longitude);
@@ -500,13 +482,11 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
 
 
 
-        // Thiết lập dữ liệu cho Spinner
         String[] potholeTypes = {"Caution", "Warning", "Danger"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_spinner_item, potholeTypes);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         typeSpinner.setAdapter(adapter);
 
-        // Lấy tọa độ hiện tại và hiển thị lên giao diện
         latitudeEditText.setText(String.valueOf(latLng.latitude));
         longitudeEditText.setText(String.valueOf(latLng.longitude));
 
@@ -519,9 +499,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             updateAddressFromCoordinates(latitudeEditText,longitudeEditText,streetTextView,districtTextView,provinceTextView);
         });
 
-
-
-        // Dùng Geocoder để lấy địa chỉ từ tọa độ
         Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
@@ -538,10 +515,8 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             Toast.makeText(getActivity(), "Error getting address!", Toast.LENGTH_SHORT).show();
         }
 
-        // Xử lý nút Cancel
         cancelButton.setOnClickListener(v1 -> dialog.dismiss());
 
-        // Xử lý nút Add
         addButton.setOnClickListener(v2 -> {
             String selectedType = typeSpinner.getSelectedItem().toString();
             int type = 0;
@@ -561,7 +536,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             addressPothole.setDistrict(districtTextView.getText().toString());
             addressPothole.setProvince(provinceTextView.getText().toString());
 
-            // Tạo đối tượng Pothole
             Pothole pothole = new Pothole();
             pothole.setType(type);
             pothole.setLatitude(latitude);
@@ -583,9 +557,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             newPothole.setAuthor(userEmail);
             newPothole.setAddressPothole(addressPotholeClass);
 
-
-
-            // Gửi API để thêm ổ gà
             apiService.addPothole(pothole).enqueue(new Callback<ApiResponse>() {
                 @Override
                 public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
@@ -595,18 +566,18 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                             potholes.add(newPothole);
                             if (listener != null) {
                                 Log.d("MAP","Send_data");
-                                listener.DataChartAfterAdd(newPothole);
+                                listener.DataAfterAdd(newPothole);
+                                addHistory(newPothole, newPothole.getType(), newPothole.getType(), newPothole.getAddressPothole(),newPothole.getAddressPothole(),"ADD POTHOLE");
                             }
                              String snippet = newPothole.getAddressPothole().getDistrict() + "," + newPothole.getAddressPothole().getProvince()
                                     + "\n" + newPothole.getDate() + "\n" +
                                     "Type:" + getDangerLevel(newPothole.getType());
 
-                            // Tạo marker và thêm vào bản đồ
                             MarkerOptions markerOptions = new MarkerOptions()
                                     .position(latLng)
                                     .title("Pothole: " + newPothole.getAddressPothole().getStreetName())
                                     .snippet(snippet)
-                                    .icon(getMarkerColor(newPothole.getType())); // Chọn màu marker dựa trên loại ổ gà
+                                    .icon(getMarkerColor(newPothole.getType()));
 
                             Marker marker = mMap.addMarker(markerOptions);
 
@@ -615,14 +586,11 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                                 markers.add(marker);
                             }
 
-                            // Thêm ổ gà thành công
                             Toast.makeText(getActivity(), "Pothole added successfully!", Toast.LENGTH_SHORT).show();
                         } else {
-                            // Thêm ổ gà thất bại với thông báo lỗi từ server
                             Toast.makeText(getActivity(), apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        // Xử lý các lỗi với mã trạng thái
                         if (response.code() == 400) {
                             Toast.makeText(getActivity(), "Pothole already exists at the same location", Toast.LENGTH_SHORT).show();
                         } else if (response.code() == 404) {
@@ -637,7 +605,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
 
                 @Override
                 public void onFailure(Call<ApiResponse> call, Throwable t) {
-                    // Lỗi mạng hoặc lỗi ngoài mong đợi
                     Log.e("POTHOLE_ERROR", "Error adding pothole", t);
                     Toast.makeText(getActivity(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
@@ -671,7 +638,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             latitude = Double.parseDouble(latitudeText);
             longitude = Double.parseDouble(longitudeText);
 
-            // Lấy địa chỉ bằng Geocoder
             Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
             List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
             if (addresses != null && !addresses.isEmpty()) {
@@ -693,12 +659,10 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     }
 
     private void showUpdateDialog(Marker marker) {
-        // Tạo dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         View dialogView = getLayoutInflater().inflate(R.layout.update_pothole, null);
         builder.setView(dialogView);
 
-        // Ánh xạ các thành phần trong dialog
         EditText street = dialogView.findViewById(R.id.street);
         EditText district = dialogView.findViewById(R.id.district);
         EditText province = dialogView.findViewById(R.id.province);
@@ -710,22 +674,20 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         ImageView btnCancel = dialogView.findViewById(R.id.cancel);
         TextView date = dialogView.findViewById(R.id.date);
 
-        // Lấy dữ liệu từ marker hoặc đối tượng gắn trong tag
         PotholeClass pothole = (PotholeClass) marker.getTag();
         if (pothole != null) {
             street.setText(pothole.getAddressPothole().getStreetName());
             district.setText(pothole.getAddressPothole().getDistrict());
             province.setText(pothole.getAddressPothole().getProvince());
+            old_address = pothole.getAddressPothole();
             latitude.setText(String.valueOf(marker.getPosition().latitude));
             longitude.setText(String.valueOf(marker.getPosition().longitude));
             date.setText(pothole.getDate());
-            // Chọn đúng loại trong Spinner
             String[] potholeTypes = {"Caution", "Warning", "Danger"};
             ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, potholeTypes);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             typeSpinner.setAdapter(adapter);
 
-            // Đặt giá trị loại ổ gà hiện tại
             String currentType = getDangerLevel(pothole.getType());
             int position = Arrays.asList(potholeTypes).indexOf(currentType);
             if (position >= 0) {
@@ -734,9 +696,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         }
         AlertDialog dialog = builder.create();
 
-        // Xử lý khi nhấn "Update"
         btnUpdate.setOnClickListener(v -> {
-            // Cập nhật dữ liệu cho Pothole
             if (pothole != null) {
                 String selectedType = typeSpinner.getSelectedItem().toString();
                 int type = 0;
@@ -748,9 +708,22 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 pothole.getAddressPothole().setStreetName(street.getText().toString());
                 pothole.getAddressPothole().setDistrict(district.getText().toString());
                 pothole.getAddressPothole().setProvince(province.getText().toString());
+                AddressPotholeClass new_address = pothole.getAddressPothole();
                 pothole.setType(type);
 
-                updatePothole(pothole,old_type,type);
+
+                String action = "UPDATE POTHOLE";
+                if ((old_type != type) && (old_address != new_address)){
+                    action = "UPDATE POTHOLE(ADDRESS,TYPE)";
+                } else if (old_type != type) {
+                    action = "UPDATE POTHOLE(TYPE)";
+                } else if (old_address != new_address) {
+                    action = "UPDATE POTHOLE(ADDRESS)";
+                } else {
+                    dialog.dismiss();
+                    return;
+                }
+                updatePothole(pothole,old_type,type,old_address,new_address,action);
 
                 for (int i = 0; i < potholes.size(); i++) {
                     PotholeClass currentPothole = potholes.get(i);
@@ -760,18 +733,16 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                     }
                 }
 
-                // Cập nhật lại marker
                 marker.setTitle("Pothole: " + pothole.getAddressPothole().getStreetName());
                 marker.setSnippet(district.getText().toString() + "," + province.getText().toString() +
                         "\n" + pothole.getDate() +
                         "\nType: " + getDangerLevel(pothole.getType()));
                 marker.setIcon(getMarkerColor(pothole.getType()));
-                marker.showInfoWindow(); // Hiển thị lại InfoWindow
+                marker.showInfoWindow();
             }
             dialog.dismiss();
         });
 
-        // Xử lý khi nhấn "Delete"
         btnDelete.setOnClickListener(v -> {
             marker.remove();
             if (pothole != null){
@@ -781,7 +752,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 Integer type_remove = pothole.getType();
                 String date_remove = pothole.getDate();
 
-                deletePothole(lat,lon,author,type_remove, date_remove);
+                deletePothole(pothole,lat,lon,author,type_remove, date_remove);
 
                 for (int i = 0; i < potholes.size(); i++) {
                     PotholeClass currentPothole = potholes.get(i);
@@ -795,7 +766,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         });
 
 
-        // Hiển thị dialog
 
         btnCancel.setOnClickListener(view -> dialog.dismiss());
         dialog.show();
@@ -803,15 +773,12 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         if (window != null) {
             WindowManager.LayoutParams params = window.getAttributes();
 
-            // Đặt cửa sổ dialog chiếm toàn bộ màn hình
             params.width = ViewGroup.LayoutParams.MATCH_PARENT;
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
             params.gravity = Gravity.CENTER;
 
-            // Áp dụng các thay đổi
             window.setAttributes(params);
 
-            // Thiết lập background nếu cần
             window.setBackgroundDrawable(new ColorDrawable(0xF4F4F4));
         }
 
@@ -969,82 +936,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         }
     }
 
-    private void showAddPotholeDialog(final float x, final float y, final float z) {
-        if (isDialogShowing) {
-            // Nếu hộp thoại đang hiển thị, không hiển thị thêm
-            return;
-        }
-
-        isDialogShowing = true;
-
-        new AlertDialog.Builder(getActivity())
-                .setTitle("Add plothole")
-                .setMessage("We detected a change in height. Would you like to add this pothole to the database?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    // Nếu người dùng đồng ý, thêm tọa độ vào cơ sở dữ liệu
-                    getLastLocation();
-                    Toast.makeText(getActivity(), "Latitude: " + latitude + ", Longitude: " + longitude, Toast.LENGTH_SHORT).show();
-                    getAddressFromLocation(latitude, longitude);
-                    int type = 1;
-                    AddressPothole addressPothole = new AddressPothole();
-                    AddressPotholeClass addressPotholeClass = new AddressPotholeClass();
-                    addressPothole.setStreetName(streetName);
-                    addressPothole.setDistrict(district);
-                    addressPothole.setProvince(province);
-
-                    addressPotholeClass.setStreetName(streetName);
-                    addressPotholeClass.setDistrict(district);
-                    addressPotholeClass.setProvince(province);
-
-                    Pothole pothole = new Pothole();
-                    PotholeClass potholeClass = new PotholeClass();
-                    pothole.setAddressPothole(addressPothole);
-                    pothole.setLatitude(latitude);
-                    pothole.setLongitude(longitude);
-                    pothole.setDate(getCurrentTime());
-                    pothole.setType(type);
-                    pothole.setAuthor(userEmail);
-
-                    potholeClass.setAddressPothole(addressPotholeClass);
-                    potholeClass.setLatitude(latitude);
-                    potholeClass.setLongitude(longitude);
-                    potholeClass.setDate(getCurrentTime());
-                    potholeClass.setType(type);
-                    potholeClass.setAuthor(userEmail);
-
-                    addPothole(pothole);
-
-                    potholes.add(potholeClass);
-
-                    if (listener != null){
-                        listener.DataChartAfterAdd(potholeClass);
-                    }
-
-                    LatLng location = new LatLng(latitude, longitude);
-
-                    String snippet = pothole.getAddressPothole().getDistrict() + "," + pothole.getAddressPothole().getProvince()
-                            + "\n" + pothole.getDate() + "\n" +
-                            "Type:" + getDangerLevel(pothole.getType());
-
-                    // Tạo marker và thêm vào bản đồ
-                    MarkerOptions markerOptions = new MarkerOptions()
-                            .position(location)
-                            .title("Pothole: " + pothole.getAddressPothole().getStreetName())
-                            .snippet(snippet)
-                            .icon(getMarkerColor(pothole.getType())); // Chọn màu marker dựa trên loại ổ gà
-
-                    Marker marker = mMap.addMarker(markerOptions);
-
-                    if (marker != null) {
-                        marker.setTag(pothole);
-                        markers.add(marker);
-                    }
-
-                })
-                .setNegativeButton("No", null)
-                .setOnDismissListener(dialog -> isDialogShowing = false)
-                .show();
-    }
     private void fetchSuggestionsWithDelay(String query, AutoCompleteTextView searchBox) {
         if (searchRunnable != null) {
             handler.removeCallbacks(searchRunnable);
@@ -1132,10 +1023,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                         LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
                         requestRoute(currentLocation, destination);
 
-                        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
-                                == PackageManager.PERMISSION_GRANTED) {
-                            mMap.setMyLocationEnabled(true);
-                        }
+
 
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17));
 
@@ -1331,45 +1219,8 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 destination.latitude, destination.longitude,
                 results
         );
-        return results[0] <= 10; // Người dùng được xem như đã đến đích nếu cách điểm đến < 20m
+        return results[0] <= 10;
     }
-
-
-    private void updateUserMarker(LatLng currentLatLng, float bearing) {
-        if (mMap == null) {
-            Toast.makeText(getActivity(), "Map chưa được khởi tạo", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Kiểm tra tài nguyên
-        BitmapDescriptor icon;
-        try {
-            icon = BitmapDescriptorFactory.fromResource(R.drawable.ic_navigation);
-        } catch (Exception e) {
-            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // Thay thế bằng mặc định
-        }
-
-        // Đảm bảo bearing hợp lệ
-        float validBearing = (bearing >= 0 && bearing <= 360) ? bearing : 0;
-
-        // Cập nhật hoặc thêm mới marker
-        if (userMarker != null) {
-            userMarker.setPosition(currentLatLng);
-            userMarker.setRotation(validBearing);
-        } else {
-            userMarker = mMap.addMarker(new MarkerOptions()
-                    .position(currentLatLng)
-                    .icon(icon) // Icon xe
-                    .title("Vị trí hiện tại")
-                    .rotation(validBearing)
-                    .anchor(0.5f, 0.5f)); // Căn giữa
-        }
-    }
-
-    private String formatLatLng(LatLng latLng) {
-        return latLng.longitude + "," + latLng.latitude;
-    }
-
 
     private void requestRoute(LatLng startLatLng, LatLng destination) {
         String start = startLatLng.longitude + "," + startLatLng.latitude;
@@ -1392,7 +1243,6 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             public void onResponse(Call<RouteResponse> call, Response<RouteResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     RouteResponse routeResponse = response.body();
-                    // Lấy danh sách tọa độ
                     List<double[]> coordinates = routeResponse.getFeatures().get(0).getGeometry().getCoordinates();
                     PolylineOptions polylineOptions = new PolylineOptions().width(10).color(0xFF0000FF).geodesic(true);
                     List<LatLng> routePoints = new ArrayList<>();
@@ -1462,12 +1312,10 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             return false;
         }
 
-
         for (int i = 0; i < routePoints.size() - 1; i++) {
             LatLng start = routePoints.get(i);
             LatLng end = routePoints.get(i + 1);
 
-            // Tính khoảng cách từ pothole đến đoạn thẳng giữa start và end
             double distance = distanceToSegment(potholeLocation, start, end);
             if (distance <= 5) {
                 return true;
@@ -1490,19 +1338,15 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         double dy = ey - sy;
 
         if (dx == 0 && dy == 0) {
-            // Start và End trùng nhau, tính khoảng cách từ point đến start
             return distanceBetween(point, start);
         }
 
-        // Tính t (tỉ lệ giữa đoạn thẳng và đoạn vuông góc)
         double t = ((px - sx) * dx + (py - sy) * dy) / (dx * dx + dy * dy);
-        t = Math.max(0, Math.min(1, t)); // Giới hạn t trong [0, 1]
+        t = Math.max(0, Math.min(1, t));
 
-        // Tính tọa độ điểm gần nhất trên đoạn thẳng
         double nearestX = sx + t * dx;
         double nearestY = sy + t * dy;
 
-        // Tính khoảng cách từ point đến điểm gần nhất trên đoạn thẳng
         return distanceBetween(point, new LatLng(nearestX, nearestY));
     }
 
@@ -1534,14 +1378,11 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse apiResponse = response.body();
                     if (apiResponse.isStatus()) {
-                        // Thêm ổ gà thành công
                         Toast.makeText(getActivity(), "Pothole added successfully!", Toast.LENGTH_SHORT).show();
                     } else {
-                        // Thêm ổ gà thất bại với thông báo lỗi từ server
                         Toast.makeText(getActivity(), apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    // Xử lý các lỗi với mã trạng thái
                     if (response.code() == 400) {
                         Toast.makeText(getActivity(), "Pothole already exists at the same location", Toast.LENGTH_SHORT).show();
                     } else if (response.code() == 404) {
@@ -1556,16 +1397,14 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
 
             @Override
             public void onFailure(Call<ApiResponse> call, Throwable t) {
-                // Lỗi mạng hoặc lỗi ngoài mong đợi
                 Log.e("POTHOLE_ERROR", "Error adding pothole", t);
                 Toast.makeText(getActivity(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void updatePothole(PotholeClass pothole, Integer old_type, Integer new_type) {
+    private void updatePothole(PotholeClass pothole, Integer old_type, Integer new_type, AddressPotholeClass old_address, AddressPotholeClass new_address, String action) {
 
-        // Call Retrofit API to update pothole
         Call<PotholeResponse> call = apiService.updatePothole(pothole);
         call.enqueue(new Callback<PotholeResponse>() {
             @Override
@@ -1573,7 +1412,8 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(getActivity(), "Update successful", Toast.LENGTH_SHORT).show();
                     if (listener != null){
-                        listener.DataChartAfterUpdate(old_type,new_type);
+                        listener.DataAfterUpdate(old_type,new_type);
+                        addHistory(pothole, old_type, new_type, old_address, new_address,action);
                     }
                 } else {
                     Toast.makeText(getActivity(), "Update failed", Toast.LENGTH_SHORT).show();
@@ -1587,7 +1427,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         });
     }
 
-    private void deletePothole(Double lat, Double lon, String author, Integer type, String date) {
+    private void deletePothole(PotholeClass potholeClass, Double lat, Double lon, String author, Integer type, String date) {
 
         Call<PotholeResponse> call = apiService.deletePothole(lat, lon, author);
         call.enqueue(new Callback<PotholeResponse>() {
@@ -1596,7 +1436,8 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(getActivity(), "Delete successful", Toast.LENGTH_SHORT).show();
                     if (listener != null){
-                        listener.DataChartAfterDelete(type,date);
+                        listener.DataAfterDelete(type,date);
+                        addHistory(potholeClass, type, type, potholeClass.getAddressPothole(), potholeClass.getAddressPothole(), "DELETE POTHOLE");
                     }
                 } else {
                     Toast.makeText(getActivity(), "Delete failed", Toast.LENGTH_SHORT).show();
@@ -1610,6 +1451,56 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         });
     }
 
+    private void addHistory(PotholeClass potholeClass, Integer old_type, Integer new_type, AddressPotholeClass old_address, AddressPotholeClass new_address, String action){
+        Integer point = 0;
+        if (action.equals("ADD POTHOLE")){
+            point = potholeClass.getType()*2 - 1;
+        } else if (action.equals("UPDATE POTHOLE(ADDRESS)")||action.equals("UPDATE POTHOLE(TYPE)")||action.equals("UPDATE POTHOLE(ADDRESS,TYPE)")){
+            point = new_type*2 - old_type*2;
+        } else {
+            point = 1 - potholeClass.getType()*2;
+        }
+
+        HistoryClass history = new HistoryClass();
+        history.setAction(action);
+        history.setAddressPothole(new_address);
+        history.setAuthor(potholeClass.getAuthor());
+        history.setDate(potholeClass.getDate());
+        history.setType(potholeClass.getType());
+        history.setLatitude(potholeClass.getLatitude());
+        history.setLongitude(potholeClass.getLongitude());
+        history.setPoint(point);
+
+        apiService.addHistory(history).enqueue(new Callback<ApiResponse>() {
+            @Override
+            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse apiResponse = response.body();
+                    if (apiResponse.isStatus()) {
+                        Toast.makeText(getActivity(), "History added successfully!", Toast.LENGTH_SHORT).show();
+                        if (listener != null){
+                            listener.AddHistory(history);
+                        }
+                    } else {
+                        Toast.makeText(getActivity(), apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    if (response.code() == 500) {
+                        Toast.makeText(getActivity(), "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getActivity(), "Failed to add history: " + response.message(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse> call, Throwable t) {
+                Log.e("POTHOLE_ERROR", "Error adding pothole", t);
+                Toast.makeText(getActivity(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 
     private void stopLocationUpdates() {
         if (fusedLocationClient != null && locationCallback != null) {
@@ -1619,23 +1510,20 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
 
     private void cancelRoute() {
         if (currentPolyline != null) {
-            currentPolyline.remove();  // Xóa đường dẫn trên bản đồ
-            currentPolyline= null;  // Đặt lại biến currentRoute
+            currentPolyline.remove();
+            currentPolyline= null;
             isRouteDrawn =false;
             mMap.setOnMapClickListener(null);
             destinationMarker2.remove();
             destinationMarker2 = null;
             destination = null;
-            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                mMap.setMyLocationEnabled(false);
-            }
             addMarkers();
             note.setVisibility(View.GONE);
         } else {
             Toast.makeText(requireContext(), "No route to cancel", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     public static boolean isEmulator() {
         return Build.FINGERPRINT.contains("generic") ||
@@ -1651,9 +1539,10 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
         listener = null; // Hủy liên kết khi Fragment bị tháo
     }
 
-    public interface UpdateChart {
-        void DataChartAfterAdd(PotholeClass potholeClass);
-        void DataChartAfterUpdate(Integer old_type, Integer new_type);
-        void DataChartAfterDelete(Integer type, String Date);
+    public interface Update {
+        void DataAfterAdd(PotholeClass potholeClass);
+        void DataAfterUpdate(Integer old_type, Integer new_type);
+        void DataAfterDelete(Integer type, String Date);
+        void AddHistory(HistoryClass historyClass);
     }
 }

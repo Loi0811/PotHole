@@ -55,7 +55,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.UserSetting {
+public class Home extends AppCompatActivity implements Map.Update, Setting.UserSetting {
     private Fragment currentFragment;
     private Fragment dashboardFragment;
     private Fragment mapFragment;
@@ -68,6 +68,7 @@ public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.
     private String useremail;
     private User user;
     private String password;
+    private Integer point;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -449,7 +450,7 @@ public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.
     }
 
     @Override
-    public void DataChartAfterAdd (PotholeClass potholeClass){
+    public void DataAfterAdd (PotholeClass potholeClass){
         Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
         if (dashboard != null){
             Log.d("HOME","Give data");
@@ -458,7 +459,7 @@ public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.
     }
 
     @Override
-    public void DataChartAfterUpdate (Integer old_type, Integer new_type){
+    public void DataAfterUpdate (Integer old_type, Integer new_type){
         Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
         if (dashboard != null){
             dashboard.ChartAfterUpdate(old_type,new_type);
@@ -466,11 +467,20 @@ public class Home extends AppCompatActivity implements Map.UpdateChart, Setting.
     }
 
     @Override
-    public void DataChartAfterDelete (Integer type, String date){
+    public void DataAfterDelete (Integer type, String date){
         Dashboard dashboard = (Dashboard) getSupportFragmentManager().findFragmentByTag("DashboardFragment");
         if (dashboard != null){
             dashboard.ChartAfterDelete(type,date);
         }
+    }
+
+    @Override
+    public void AddHistory(HistoryClass historyClass){
+        History history = (History) getSupportFragmentManager().findFragmentByTag("HistoryFragment");
+        if (history != null){
+            history.addItemHistory(historyClass);
+        }
+
     }
 
     @Override

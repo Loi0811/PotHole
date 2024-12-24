@@ -62,7 +62,14 @@ public class MainActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, LogIn.class);
+                SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+                String email = sharedPreferences.getString("Email",null);
+                Intent intent;
+                if (email != null){
+                    intent = new Intent(MainActivity.this, Home.class);
+                } else {
+                    intent = new Intent(MainActivity.this, LogIn.class);
+                }
                 startActivity(intent);
             }
         });
@@ -189,6 +196,8 @@ public class MainActivity extends AppCompatActivity {
         user.setBirthday("2/2/2000");
         user.setGender("gender");
         user.setCreate(currentDate);
+        user.setAvatar("id0");
+        user.setTravel(0.0);
 
         apiService.registerUser(user).enqueue(new Callback<ApiResponse>() {
             @Override

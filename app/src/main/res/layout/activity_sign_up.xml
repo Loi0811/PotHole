@@ -134,7 +134,8 @@
                 android:textColor="@color/gray"
                 android:drawableLeft="@drawable/ic_pwd_foreground"
                 android:background="@drawable/edittext"
-                android:inputType="textPassword"/>
+                android:inputType="textPassword"
+                android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"/>
             <ImageView
                 android:id="@+id/eye1"
                 android:layout_width="40dp"
@@ -160,7 +161,8 @@
                 android:textColor="@color/gray"
                 android:drawableLeft="@drawable/ic_pwd_foreground"
                 android:background="@drawable/edittext"
-                android:inputType="textPassword"/>
+                android:inputType="textPassword"
+                android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"/>
             <ImageView
                 android:id="@+id/eye2"
                 android:layout_width="40dp"

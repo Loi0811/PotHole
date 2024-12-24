@@ -134,7 +134,7 @@ public class LogIn extends AppCompatActivity {
                         editor.apply();
 
                         Intent intent = new Intent(LogIn.this, Home.class);
-                        intent.putExtra("token", token); // Pass token to Home activity if needed
+                        intent.putExtra("token", token);
                         startActivity(intent);
                     } else {
                         // Login failed with custom message from the response

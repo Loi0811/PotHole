@@ -501,7 +501,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
             Marker marker = mMap.addMarker(markerOptions);
 
             if (marker != null) {
-                marker.setTag(pothole);
+                marker.setTag(potholeClass);
                 markers.add(marker);
             }
             dialog.dismiss();
@@ -885,19 +885,32 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private void getAddressFromLocation(double latitude, double longitude) {
         Geocoder geocoder = new Geocoder(getActivity());
         try {
-            // Lấy danh sách địa chỉ từ tọa độ
             List<Address> addressUsers = geocoder.getFromLocation(latitude, longitude, 1);
 
             if (addressUsers != null && !addressUsers.isEmpty()) {
                 Address address = addressUsers.get(0);
 
-                // Lấy các phần thông tin của địa chỉ
-                streetName = address.getThoroughfare(); // Địa chỉ đường phố
-                district = address.getSubLocality(); // Quận/Huyện
-                province = address.getAdminArea(); // Tỉnh/Thành phố
+                streetName = address.getThoroughfare();
+                district = address.getSubLocality();
+                province = address.getAdminArea();
+
+                if (streetName == null){
+                    streetName = "streetName";
+                }
+
+                if (district == null){
+                    district = "district";
+                }
+
+                if (province == null){
+                    province = "province";
+                }
 
             } else {
                 Toast.makeText(getActivity(), "Không tìm thấy địa chỉ cho tọa độ này.", Toast.LENGTH_SHORT).show();
+                streetName = "streetName";
+                district = "district";
+                province = "province";
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -1255,7 +1268,7 @@ public class Map extends Fragment implements OnMapReadyCallback,OnPotholeAddedLi
     private double calculateDistance(LatLng from, LatLng to) {
         float[] results = new float[1];
         Location.distanceBetween(from.latitude, from.longitude, to.latitude, to.longitude, results);
-        return results[0]; // Khoảng cách tính bằng mét
+        return results[0];
     }
 
     private PotholeClass getNearestPothole(LatLng currentLocation) {

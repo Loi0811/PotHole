@@ -241,10 +241,12 @@ public class Setting extends Fragment {
     }
 
     private void showChangePasswordPopup(View anchorView) {
-        // Inflate layout popup
+        if(isGoogle()){
+            return;
+        }
+
         View popupView = LayoutInflater.from(getContext()).inflate(R.layout.change_password, null);
 
-        // Tạo PopupWindow
         PopupWindow popupWindow = new PopupWindow(popupView,
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -842,6 +844,11 @@ public class Setting extends Fragment {
 
         // Hiển thị dialog
         dialog.show();
+    }
+
+    private boolean isGoogle() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        return prefs.getBoolean("GoogleLogin", false);
     }
 
     @Override

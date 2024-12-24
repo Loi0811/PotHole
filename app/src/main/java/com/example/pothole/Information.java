@@ -3,6 +3,7 @@ package com.example.pothole;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -207,15 +208,17 @@ public class Information extends AppCompatActivity {
         );
 
 
-        // Find the "LOG IN" button in the popup layout
         Button loginButton = popupView.findViewById(R.id.login);
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                popupWindow.dismiss(); // Close the popup
+                popupWindow.dismiss();
                 finish();
                 startActivity(new Intent(Information.this, LogIn.class));
-                // Start Login Activity
+                SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.remove("Email");
+                editor.apply();
             }
         });
         popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0);
